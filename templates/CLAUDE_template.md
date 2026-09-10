@@ -22,12 +22,12 @@
 
 共通ルールは `rules/` 配下に従う。特に次を必ず読む。
 
-- rules/00_general/principles.md
-- rules/10_git/pull_request.md
-- rules/30_src/structure.md
-- rules/50_testing/policy.md
+- rules/general.md
+- rules/git.md
+- rules/source.md
+- rules/testing.md
 
-ドキュメントを書くときは rules/20_docs/markdown.md に従う。
+ドキュメントを書くときは rules/docs.md に従う。
 
 このプロジェクト固有のルールは以下。
 

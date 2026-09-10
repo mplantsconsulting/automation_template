@@ -1,8 +1,8 @@
 # automation_template
 
 プロジェクト横断で使うコーディングルール集です。
-言語やフレームワークに依存しない共通ルールだけを Markdown で管理します。
-言語固有のルール(Lint 設定、型の書き方など)は各プロジェクト側で定義してください。
+言語やフレームワークに依存しない共通ルールを中心に Markdown で管理します。
+特定の技術は推奨候補に留め、言語固有の書式や Lint 設定は各プロジェクト側で定義してください。
 
 ## 使い方
 
@@ -14,29 +14,30 @@
 
 ### 既存プロジェクトで使う
 
-1. [rules/](rules/) を丸ごと、または必要なディレクトリだけコピーする。
+1. [rules/](rules/) を丸ごと、または必要なカテゴリだけコピーする。
 2. プロジェクト側の `CLAUDE.md` から `rules/` を参照する(書き方は [templates/CLAUDE_template.md](templates/CLAUDE_template.md) を参照)。
 
 ## ルール一覧
 
-| ディレクトリ | 内容 |
+| ファイル | 内容 |
 | --- | --- |
-| [rules/00_general/](rules/00_general/) | 全体原則、命名、セキュリティ |
-| [rules/10_git/](rules/10_git/) | ブランチ、コミット、Pull Request |
-| [rules/20_docs/](rules/20_docs/) | Markdown、README、引き継ぎ資料 |
-| [rules/30_src/](rules/30_src/) | ディレクトリ構成、関数設計、エラーとログ、設定、コメント |
-| [rules/40_frontend/](rules/40_frontend/) | 画面部品、状態管理、表示と操作性 |
-| [rules/50_testing/](rules/50_testing/) | テスト方針、書き方、外部依存の扱い |
-| [rules/60_ci/](rules/60_ci/) | Lint / Formatter、CI パイプライン |
+| [rules/general.md](rules/general.md) | 全体原則、命名、セキュリティ、標準ツール |
+| [rules/git.md](rules/git.md) | ブランチ、コミット、Pull Request |
+| [rules/docs.md](rules/docs.md) | Markdown、README、引き継ぎ |
+| [rules/source.md](rules/source.md) | 構成、関数、設定、エラー、ログ、コメント |
+| [rules/frontend.md](rules/frontend.md) | 技術選定、部品、状態、表示、操作性 |
+| [rules/testing.md](rules/testing.md) | テスト方針、書き方、外部依存 |
+| [rules/ci.md](rules/ci.md) | Lint、Formatter、CI |
 
-各ルールは [rules/_template.md](rules/_template.md) の形式で書かれています。
-ルールの強さは MUST / SHOULD / MAY の 3 段階です。
+新しいカテゴリを追加するときは [rules/_template.md](rules/_template.md) を使います。
+必須と推奨を分け、例や例外は必要な場合だけ書きます。
+カテゴリ内では、「推奨」「任意」「例外」と明記した項目以外を必須とします。
 
 | 表記 | 意味 |
 | --- | --- |
-| MUST | 例外なく守る。違反はレビューで差し戻す |
-| SHOULD | 原則守る。外す場合は理由を PR に書く |
-| MAY | 推奨するが任意 |
+| 必須 | 例外なく守る。違反はレビューで差し戻す |
+| 推奨 | 原則守る。外す場合は理由を PR に書く |
+| 任意 | 必要に応じて採用する |
 
 ## テンプレート一覧
 
@@ -61,14 +62,14 @@ automation_template/
 ├── README.md          # このファイル
 ├── CLAUDE.md          # AI エージェント向けの入口
 ├── CHANGELOG.md       # ルール改訂履歴
-├── rules/             # ルール本体
-│   ├── _template.md   # ルールを書くときの雛形
-│   ├── 00_general/
-│   ├── 10_git/
-│   ├── 20_docs/
-│   ├── 30_src/
-│   ├── 40_frontend/
-│   ├── 50_testing/
-│   └── 60_ci/
+├── rules/             # カテゴリごとのルール本体
+│   ├── general.md
+│   ├── git.md
+│   ├── docs.md
+│   ├── source.md
+│   ├── frontend.md
+│   ├── testing.md
+│   ├── ci.md
+│   └── _template.md   # ルールを書くときの雛形
 └── templates/         # コピーして使うファイル
 ```

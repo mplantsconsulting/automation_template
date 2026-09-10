@@ -5,9 +5,10 @@
 ## このリポジトリで作業するとき
 
 - ルールを追加・変更する前に [rules/_template.md](rules/_template.md) を読み、同じ形式で書く。
-- ルールは言語やフレームワークに依存しない内容に限る。ツール名は「例」として添える程度にする。
-- MUST / SHOULD / MAY の 3 段階を使い、1 文 1 ルールで書く。
-- Markdown の書き方は [rules/20_docs/markdown.md](rules/20_docs/markdown.md) に従う。
+- ルールは原則として言語やフレームワークに依存しない内容にする。特定の言語やツールは必須にせず、推奨または例として示す。
+- 必須と推奨を分け、1 文 1 ルールで書く。
+- 「推奨」「任意」「例外」と明記していない項目は必須として扱う。
+- Markdown の書き方は [rules/docs.md](rules/docs.md) に従う。
 - ルールを変更したら [CHANGELOG.md](CHANGELOG.md) に 1 行追記する。
 
 ## 他のプロジェクトからこのルールを参照するとき
@@ -19,10 +20,10 @@
 
 共通ルールは `rules/` 配下に従う。特に次を必ず読む。
 
-- rules/00_general/principles.md
-- rules/10_git/pull_request.md
-- rules/30_src/structure.md
-- rules/50_testing/policy.md
+- rules/general.md
+- rules/git.md
+- rules/source.md
+- rules/testing.md
 
 このプロジェクト固有のルールは以下。
 
@@ -32,12 +33,12 @@
 
 ## ルール一覧
 
-| ディレクトリ | 内容 |
+| ファイル | 内容 |
 | --- | --- |
-| rules/00_general/ | 全体原則、命名、セキュリティ |
-| rules/10_git/ | ブランチ、コミット、Pull Request |
-| rules/20_docs/ | Markdown、README、引き継ぎ資料 |
-| rules/30_src/ | ディレクトリ構成、関数設計、エラーとログ、設定、コメント |
-| rules/40_frontend/ | 画面部品、状態管理、表示と操作性 |
-| rules/50_testing/ | テスト方針、書き方、外部依存の扱い |
-| rules/60_ci/ | Lint / Formatter、CI パイプライン |
+| rules/general.md | 全体原則、命名、セキュリティ、標準ツール |
+| rules/git.md | ブランチ、コミット、Pull Request |
+| rules/docs.md | Markdown、README、引き継ぎ |
+| rules/source.md | 構成、関数、設定、エラー、ログ、コメント |
+| rules/frontend.md | 技術選定、部品、状態、表示、操作性 |
+| rules/testing.md | テスト方針、書き方、外部依存 |
+| rules/ci.md | Lint、Formatter、CI |
