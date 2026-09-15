@@ -27,7 +27,7 @@
 - rules/source.md
 - rules/testing.md
 
-ドキュメントを書くときは rules/docs.md に従う。
+ドキュメントを書くときは rules/docs.md、Notion を使うときは rules/notion.md に従う。
 
 このプロジェクト固有のルールは以下。
 

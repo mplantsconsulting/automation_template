@@ -119,7 +119,7 @@ git switch -c dev && git push -u origin dev
 gh repo edit mplantsconsulting/<リポジトリ名> --default-branch dev
 ```
 
-`rules/`、`.claude/commands/`、`scripts/notion.mjs`、`.github/` をこのリポジトリからコピーして入れておきます。
+`rules/`、`reference/`、`.claude/commands/`、`scripts/notion.mjs`、`.github/` をこのリポジトリからコピーして入れておきます。
 AI が同じルールとコマンドを使えるようになります。
 
 作ったら Notion にも登録し、プロジェクトへ紐付けます。
@@ -132,8 +132,7 @@ node scripts/notion.mjs repo-create \
   --visibility private --branch dev
 ```
 
-ブランチ保護は設定しません。組織の GitHub プランでは private リポジトリに設定できないためです。
-`main` への直接 push の禁止は運用で守ります。
+ブランチ保護は設定しません。理由は [rules/git.md](rules/git.md) にあります。
 
 ## 4. タスクを作る
 
@@ -200,7 +199,7 @@ AI が次を順に行います。
 7. PR を作る。本文の 1 行目はタスクへのリンク、最初の見出しは `## 目的`
 8. タスクへ PR を紐付け、ステータスをレビューにする
 
-差分が 300 行を超えそうなときは、途中で止まってタスク分割を提案します。そこで分けてください。
+PR の差分が 300 行を超えそうなときは、途中で止まってタスク分割を提案します。そこで分けてください。
 
 マージはしません。レビューを受けてから、自分でマージします。
 
@@ -224,18 +223,14 @@ node scripts/notion.mjs task-status TSK-000 --status 完了
 | `CI では実行しない` と出る | `NOTION_TOKEN` を CI から使おうとしている。手元で実行する |
 | `TSK-000 が見つからない` | 番号か接頭辞の間違い。タスクは `TSK`、プロジェクトは `PJ` |
 | クライアント名で止まる | Notion の登録名と違う。`node scripts/notion.mjs clients` で確認する |
-| PR が大きくなった | タスクの粒度が粗い。タスクを分けてから PR も分ける |
+| PR の差分が 300 行を超えた | タスクの粒度が粗い。タスクを分けてから PR も分ける |
 
 ## 次に読むもの
 
-| ファイル | 読む場面 |
-| --- | --- |
-| [rules/git.md](rules/git.md) | ブランチ、コミット、PR の書き方 |
-| [rules/notion.md](rules/notion.md) | Notion の階層とデータベースの使い分け |
-| [rules/general.md](rules/general.md) | 命名とセキュリティの原則 |
-| [rules/source.md](rules/source.md) | 実装を始める前に |
-| [rules/testing.md](rules/testing.md) | テストを書く前に |
-| [README.md](README.md) | ルール全体の一覧 |
+[rules/general.md](rules/general.md) と [rules/git.md](rules/git.md) は常に読みます。
+残りは作業内容に応じて開きます。ファイルの一覧と読む場面は [README.md](README.md) の「ルール一覧」にあります。
+
+Notion のデータベース名や列の一覧は [reference/notion-workspace.md](reference/notion-workspace.md) にあります。
 
 ## 実例
 

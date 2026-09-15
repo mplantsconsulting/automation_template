@@ -4,9 +4,11 @@
 言語やフレームワークに依存しない共通ルールを中心に Markdown で管理します。
 特定の技術は推奨候補に留め、言語固有の書式や Lint 設定は各プロジェクト側で定義してください。
 
+例外は、社内全体で共通に使うツールです。Notion のように使い方を揃える必要があるものは、ツール名のルールを置きます。
+
 初めての方は、AI に「start.md を読んで」とだけ伝えてください。
 案件の資料 1 枚から、Notion のプロジェクトとタスクを作り、最初の PR を出すまで案内します。
-手順そのものは [start.md](start.md) にあります。
+手順と必要な準備は [start.md](start.md) にまとめてあります。
 
 ## 使い方
 
@@ -23,26 +25,35 @@
 
 ## ルール一覧
 
-| ファイル | 内容 |
+| ファイル | 読む場面 |
 | --- | --- |
-| [rules/general.md](rules/general.md) | 全体原則、命名、セキュリティ、標準ツール |
-| [rules/git.md](rules/git.md) | ブランチ、コミット、Pull Request |
-| [rules/docs.md](rules/docs.md) | Markdown、README、引き継ぎ |
-| [rules/notion.md](rules/notion.md) | Notion の階層、ページ、データベース |
-| [rules/source.md](rules/source.md) | 構成、関数、設定、エラー、ログ、コメント |
-| [rules/frontend.md](rules/frontend.md) | 技術選定、部品、状態、表示、操作性 |
-| [rules/testing.md](rules/testing.md) | テスト方針、書き方、外部依存 |
-| [rules/ci.md](rules/ci.md) | Lint、Formatter、CI |
+| [rules/general.md](rules/general.md) | 常に。全体原則、命名、セキュリティ、標準ツール |
+| [rules/git.md](rules/git.md) | 常に。ブランチ、コミット、Pull Request |
+| [rules/source.md](rules/source.md) | 実装するとき。構成、関数、設定、エラー、ログ、コメント |
+| [rules/testing.md](rules/testing.md) | テストを書くとき。方針、書き方、外部依存 |
+| [rules/docs.md](rules/docs.md) | 文書を書くとき。Markdown、README、引き継ぎ |
+| [rules/frontend.md](rules/frontend.md) | 画面を作るとき。技術選定、部品、状態、操作性 |
+| [rules/ci.md](rules/ci.md) | CI を触るとき。Lint、Formatter、パイプライン |
+| [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク |
 
+各ファイルはテーマごとに節を作り、その中を強度で分けます。
 新しいカテゴリを追加するときは [rules/_template.md](rules/_template.md) を使います。
-必須と推奨を分け、例や例外は必要な場合だけ書きます。
-カテゴリ内では、「推奨」「任意」「例外」と明記した項目以外を必須とします。
 
 | 表記 | 意味 |
 | --- | --- |
 | 必須 | 例外なく守る。違反はレビューで差し戻す |
 | 推奨 | 原則守る。外す場合は理由を PR に書く |
 | 任意 | 必要に応じて採用する |
+
+「推奨」「任意」「例外」と明記した項目以外は必須です。
+
+## 参照資料
+
+判断のルールではなく、現状を写した一覧です。実物が変わったら同じ日に直します。
+
+| ファイル | 内容 |
+| --- | --- |
+| [reference/notion-workspace.md](reference/notion-workspace.md) | Notion のデータベース、列、選択肢、既知の癖 |
 
 ## テンプレート一覧
 
@@ -55,30 +66,14 @@
 
 ## コマンド
 
-案件資料からプロジェクト、タスク、PR までを順に作るコマンドです。
-`.claude/commands/` と `scripts/notion.mjs` をプロジェクトへコピーして使います。
+案件資料からプロジェクト、タスク、PR までを順に作ります。
+使い方と準備は [start.md](start.md) にあります。
 
 | コマンド | 入力 | 作るもの |
 | --- | --- | --- |
 | `/notion-project <資料のパス>` | 要件定義や提案資料の Markdown | Notion のプロジェクト 1 件 |
-| `/notion-tasks <PJ-000>` | プロジェクト | 1 タスク 1 PR の粒度に分けたタスク |
+| `/notion-tasks <PJ-000>` | プロジェクト | 親タスクと子タスク |
 | `/task-pr <TSK-000>` | タスク | 作業ブランチ、実装、PR、タスクへの紐付け |
-
-いずれも Notion へ書き込む前に内容を提示して確認を取ります。
-`/task-pr` はマージまでは行いません。
-
-### 準備
-
-Notion の内部インテグレーションのトークンを `NOTION_TOKEN` に設定します。
-
-```bash
-export NOTION_TOKEN=ntn_xxx            # または .env に書く
-export NOTION_ENV_FILE=/path/to/.env   # 別の場所の .env を使う場合
-node scripts/notion.mjs members        # 接続確認
-```
-
-このトークンは給与を含むページへ到達できます。CI では実行しないでください。
-スクリプトも `CI` 環境変数を検出すると実行を拒否します。
 
 ## ルールの改訂
 
@@ -92,23 +87,15 @@ node scripts/notion.mjs members        # 接続確認
 
 ```text
 automation_template/
-├── README.md          # このファイル
-├── start.md           # 案件資料から最初の PR までの手順
-├── CLAUDE.md          # Claude Code 向けの入口
-├── AGENTS.md          # Codex など他のツール向けの入口
+├── README.md          # このファイル。ルール一覧の正
+├── start.md           # 案件資料から最初の PR までの手順。AI への指示の正
+├── CLAUDE.md          # Claude Code が読む短い案内
+├── AGENTS.md          # Codex など他のツールが読む短い案内。CLAUDE.md と同内容
 ├── CHANGELOG.md       # ルール改訂履歴
-├── .claude/commands/  # 案件資料からプロジェクト、タスク、PR を作るコマンド
-├── scripts/
-│   └── notion.mjs     # Notion のプロジェクトとタスクを読み書きする CLI
 ├── rules/             # カテゴリごとのルール本体
-│   ├── general.md
-│   ├── git.md
-│   ├── docs.md
-│   ├── notion.md
-│   ├── source.md
-│   ├── frontend.md
-│   ├── testing.md
-│   ├── ci.md
-│   └── _template.md   # ルールを書くときの雛形
-└── templates/         # コピーして使うファイル
+├── reference/         # 現状を写した一覧。変わったら直す
+├── templates/         # コピーして使うファイル
+├── .claude/commands/  # プロジェクト、タスク、PR を作るコマンド
+└── scripts/
+    └── notion.mjs     # Notion を読み書きする CLI
 ```
