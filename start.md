@@ -1,10 +1,32 @@
 # はじめかた
 
 案件の資料 1 枚から、Notion のプロジェクトとタスクを作り、最初の PR を出すまでの手順です。
-AI に `rules/` を読ませ、`.claude/commands/` のコマンドを呼ばせる前提で書いています。
+
+使う人は、AI に「start.md を読んで」とだけ伝えてください。
+あとは AI が順に聞いてくるので、答えていけば最初の PR まで進みます。
 
 所要時間は、資料が手元にあれば 30 分ほどです。
-手順の途中で AI が確認を求めるので、内容を見てから進めてください。
+
+## このファイルを読んだ AI への指示
+
+この節はあなた（AI）への指示です。利用者へ読み上げず、次のとおり動いてください。
+
+1. **最初の返答は次の 1 文だけにする。** 手順の説明も要約もしない。
+
+   > 要件定義を入力してください。ファイルのパスでも、内容の貼り付けでも構いません。
+
+2. 入力を受け取るまで、ファイルの調査もコマンドの実行もしない。
+3. 入力を受け取ったら、「全体の流れ」の順に 1 ステップずつ進める。
+   各ステップの終わりに結果を示し、次へ進んでよいか確認する。
+4. Notion と GitHub へ書き込む前に、必ず内容を見せて承認を得る。承認なしで作らない。
+5. 途中で不明な点が出たら、推測で埋めずに聞く。ただし聞くのは 1 回にまとめる。
+6. `/notion-project` のようなコマンドが使えない環境（Codex など）では、
+   各節に併記した `node scripts/notion.mjs ...` を直接組み立てて実行する。
+7. 実装に入る前に [rules/general.md](rules/general.md) と [rules/git.md](rules/git.md) を読む。
+   実装中は [rules/source.md](rules/source.md) と [rules/testing.md](rules/testing.md) に従う。
+8. 作業する場所は手順によって変わる。手順 3 までは automation_template の中で実行し、
+   案件のリポジトリを作ったら、手順 4 以降はそちらへ移って実行する。
+   automation_template に案件のコードを置かない。
 
 ## 全体の流れ
 
@@ -67,6 +89,19 @@ node scripts/notion.mjs members    # 名前が並べば接続できている
 /notion-project docs/requirements.md
 ```
 
+コマンドが使えない環境では、資料を読んで次を組み立てます。
+
+```bash
+node scripts/notion.mjs clients     # クライアント名を確認する
+node scripts/notion.mjs members     # 担当者名を確認する
+node scripts/notion.mjs project-create \
+  --name "<プロジェクト名>" --client "<会社名>" --pm "<氏名>" --dev "<氏名>" \
+  --start 2026-10-01 --due 2026-12-31 --priority 中 --kind ショット \
+  --md docs/requirements.md --dry-run
+```
+
+`--dry-run` で内容を見せ、承認を得てから外して実行します。
+
 AI が資料を読み、クライアント、担当、期間を埋めてプロジェクトを作ります。
 足りない項目は聞かれます。内容を見せられたら、作ってよければ承認してください。
 
@@ -106,6 +141,15 @@ node scripts/notion.mjs repo-create \
 /notion-tasks PJ-000
 ```
 
+コマンドが使えない環境では、親を作ってから子を作ります。
+
+```bash
+node scripts/notion.mjs task-create --project PJ-000 \
+  --name "1. データ取得・投入基盤構築" --kind 開発 --priority 中
+node scripts/notion.mjs task-create --project PJ-000 --parent TSK-000 \
+  --name "1-1. レジュメ取り込みの入力処理を実装" --estimate 12 --kind 開発 --due 2026-10-17
+```
+
 親タスクを先に作り、そのあとで子タスクを作ります。
 
 AI は **親タスクをいくつ作るか** を聞いてきます。候補を見て決めてください。
@@ -129,6 +173,20 @@ AI は **親タスクをいくつ作るか** を聞いてきます。候補を�
 
 ```text
 /task-pr TSK-000
+```
+
+コマンドが使えない環境では、次を順に行います。
+
+```bash
+node scripts/notion.mjs task-get TSK-000                  # 対象リポジトリを確認
+node scripts/notion.mjs task-status TSK-000 --status 進行中
+git switch dev && git pull --ff-only && git switch -c <type>/<短い説明>
+# 実装、テスト、lint、型、ビルド
+git commit -m "<type>: <要約>（TSK-000）"
+git push -u origin <type>/<短い説明>
+gh pr create --base dev --title "<type>: <要約>（TSK-000）" --body-file <本文>
+node scripts/notion.mjs task-link-pr TSK-000 --url <PR の URL> --title "<PR タイトル>"
+node scripts/notion.mjs task-status TSK-000 --status レビュー
 ```
 
 AI が次を順に行います。
