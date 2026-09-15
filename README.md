@@ -24,6 +24,7 @@
 | [rules/general.md](rules/general.md) | 全体原則、命名、セキュリティ、標準ツール |
 | [rules/git.md](rules/git.md) | ブランチ、コミット、Pull Request |
 | [rules/docs.md](rules/docs.md) | Markdown、README、引き継ぎ |
+| [rules/notion.md](rules/notion.md) | Notion の階層、ページ、データベース |
 | [rules/source.md](rules/source.md) | 構成、関数、設定、エラー、ログ、コメント |
 | [rules/frontend.md](rules/frontend.md) | 技術選定、部品、状態、表示、操作性 |
 | [rules/testing.md](rules/testing.md) | テスト方針、書き方、外部依存 |
@@ -48,8 +49,36 @@
 | [templates/README_template.md](templates/README_template.md) | プロジェクト README の雛形 |
 | [templates/CLAUDE_template.md](templates/CLAUDE_template.md) | プロジェクト CLAUDE.md の雛形 |
 
+## コマンド
+
+案件資料からプロジェクト、タスク、PR までを順に作るコマンドです。
+`.claude/commands/` と `scripts/notion.mjs` をプロジェクトへコピーして使います。
+
+| コマンド | 入力 | 作るもの |
+| --- | --- | --- |
+| `/notion-project <資料のパス>` | 要件定義や提案資料の Markdown | Notion のプロジェクト 1 件 |
+| `/notion-tasks <PJ-000>` | プロジェクト | 1 タスク 1 PR の粒度に分けたタスク |
+| `/task-pr <TSK-000>` | タスク | 作業ブランチ、実装、PR、タスクへの紐付け |
+
+いずれも Notion へ書き込む前に内容を提示して確認を取ります。
+`/task-pr` はマージまでは行いません。
+
+### 準備
+
+Notion の内部インテグレーションのトークンを `NOTION_TOKEN` に設定します。
+
+```bash
+export NOTION_TOKEN=ntn_xxx            # または .env に書く
+export NOTION_ENV_FILE=/path/to/.env   # 別の場所の .env を使う場合
+node scripts/notion.mjs members        # 接続確認
+```
+
+このトークンは給与を含むページへ到達できます。CI では実行しないでください。
+スクリプトも `CI` 環境変数を検出すると実行を拒否します。
+
 ## ルールの改訂
 
+- このリポジトリは `main` だけで運用する。ルール本体の `dev` 運用は適用しない。
 - ルールの追加・変更・削除はすべて Pull Request で行う。
 - 変更内容は [CHANGELOG.md](CHANGELOG.md) に記録する。
 - 新しいルールは [rules/_template.md](rules/_template.md) をコピーして書き始める。
@@ -62,10 +91,14 @@ automation_template/
 ├── README.md          # このファイル
 ├── CLAUDE.md          # AI エージェント向けの入口
 ├── CHANGELOG.md       # ルール改訂履歴
+├── .claude/commands/  # 案件資料からプロジェクト、タスク、PR を作るコマンド
+├── scripts/
+│   └── notion.mjs     # Notion のプロジェクトとタスクを読み書きする CLI
 ├── rules/             # カテゴリごとのルール本体
 │   ├── general.md
 │   ├── git.md
 │   ├── docs.md
+│   ├── notion.md
 │   ├── source.md
 │   ├── frontend.md
 │   ├── testing.md

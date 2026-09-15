@@ -38,6 +38,7 @@
 | rules/general.md | 全体原則、命名、セキュリティ、標準ツール |
 | rules/git.md | ブランチ、コミット、Pull Request |
 | rules/docs.md | Markdown、README、引き継ぎ |
+| rules/notion.md | Notion の階層、ページ、データベース |
 | rules/source.md | 構成、関数、設定、エラー、ログ、コメント |
 | rules/frontend.md | 技術選定、部品、状態、表示、操作性 |
 | rules/testing.md | テスト方針、書き方、外部依存 |
