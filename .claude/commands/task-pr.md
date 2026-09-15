@@ -27,7 +27,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Bash(node scripts/notion.mjs
 
 6. Lint、型、テスト、ビルドを通す。出力を絞らず、落ちたら全文を読む。
 7. `type: 要約` の形式でコミットする。本文には変更理由を書く。
-8. PR を作る。テンプレートは `.github/PULL_REQUEST_TEMPLATE.md`(なければ [templates/PULL_REQUEST_TEMPLATE.md](../../templates/PULL_REQUEST_TEMPLATE.md))に従う。
+8. PR を作る。テンプレートは `.github/PULL_REQUEST_TEMPLATE.md` に従う。無ければ automation_template の `templates/PULL_REQUEST_TEMPLATE.md` をコピーする。
 
    - タイトル: `type: 要約（TSK-000）`
    - 本文 1 行目: `タスク: [TSK-000 タスク名](タスクの URL)`

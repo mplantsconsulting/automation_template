@@ -33,7 +33,7 @@ README、Markdown、引き継ぎ資料を短く再現可能な状態に保つ。
 
 - 手順は上から実行できる順序で書き、変更したら同じ PR で更新する。
 - 詳細設計は `docs/`、変更履歴は `CHANGELOG.md` に分ける。
-- [README の雛形](../templates/README_template.md)を使う。
+- README の雛形（automation_template の `templates/README_template.md`）を使う。
 
 ## 引き継ぎ
 
