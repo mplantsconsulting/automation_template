@@ -207,27 +207,148 @@ function output(value) {
   console.log(JSON.stringify(value, null, 2));
 }
 
-// 本文を段落ブロックへ変換する。見出しと箇条書きだけを最低限扱う。
+// Notion は Markdown 記法を解釈しない。`#` を含む行をそのまま渡すと、
+// 見出しにならず `#` が本文へ残る。ブロック種別へ変換してから渡す。
+
+// **太字** と `コード` だけをインラインで扱う。
+function richText(text) {
+  const parts = [];
+  const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+  let last = 0;
+  for (const match of text.matchAll(pattern)) {
+    if (match.index > last) parts.push({ text: { content: text.slice(last, match.index) } });
+    const token = match[0];
+    if (token.startsWith("**")) {
+      parts.push({ text: { content: token.slice(2, -2) }, annotations: { bold: true } });
+    } else {
+      parts.push({ text: { content: token.slice(1, -1) }, annotations: { code: true } });
+    }
+    last = match.index + token.length;
+  }
+  if (last < text.length) parts.push({ text: { content: text.slice(last) } });
+  if (!parts.length) parts.push({ text: { content: text } });
+  return parts.map((p) => ({ ...p, text: { ...p.text, content: p.text.content.slice(0, 2000) } }));
+}
+
+const block = (type, payload) => ({ object: "block", type, [type]: payload });
+
+function tableRow(cells) {
+  return { object: "block", type: "table_row", table_row: { cells: cells.map((c) => richText(c)) } };
+}
+
 function bodyBlocks(text) {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, 100)
-    .map((line) => {
-      if (line.startsWith("- ")) {
-        return {
-          object: "block",
-          type: "bulleted_list_item",
-          bulleted_list_item: { rich_text: [{ text: { content: line.slice(2).slice(0, 2000) } }] },
-        };
+  const lines = text.split("\n");
+  const blocks = [];
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const raw = lines[i];
+    const line = raw.trim();
+    if (!line) continue;
+
+    // コードブロックは閉じフェンスまでまとめる。
+    const fence = line.match(/^```(\w*)/);
+    if (fence) {
+      const body = [];
+      i += 1;
+      while (i < lines.length && !lines[i].trim().startsWith("```")) {
+        body.push(lines[i]);
+        i += 1;
       }
-      return {
-        object: "block",
-        type: "paragraph",
-        paragraph: { rich_text: [{ text: { content: line.slice(0, 2000) } }] },
-      };
+      const languages = ["javascript", "typescript", "python", "bash", "shell", "json", "sql", "yaml", "markdown"];
+      blocks.push(
+        block("code", {
+          rich_text: [{ text: { content: body.join("\n").slice(0, 2000) } }],
+          language: languages.includes(fence[1]) ? fence[1] : "plain text",
+        }),
+      );
+      continue;
+    }
+
+    // 表は連続する行をまとめて 1 つのブロックにする。区切り行は捨てる。
+    if (line.startsWith("|") && line.endsWith("|")) {
+      const rows = [];
+      while (i < lines.length) {
+        const row = lines[i].trim();
+        if (!row.startsWith("|") || !row.endsWith("|")) break;
+        const cells = row.slice(1, -1).split("|").map((c) => c.trim());
+        if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) rows.push(cells);
+        i += 1;
+      }
+      i -= 1;
+      const width = Math.max(...rows.map((r) => r.length));
+      blocks.push(
+        block("table", {
+          table_width: width,
+          has_column_header: true,
+          has_row_header: false,
+          children: rows.map((r) => tableRow([...r, ...Array(width - r.length).fill("")])),
+        }),
+      );
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.*)$/);
+    if (heading) {
+      blocks.push(block(`heading_${heading[1].length}`, { rich_text: richText(heading[2]) }));
+      continue;
+    }
+    if (/^(-{3,}|\*{3,})$/.test(line)) {
+      blocks.push(block("divider", {}));
+      continue;
+    }
+    if (line.startsWith("> ")) {
+      blocks.push(block("quote", { rich_text: richText(line.slice(2)) }));
+      continue;
+    }
+    const bullet = line.match(/^[-*]\s+(.*)$/);
+    if (bullet) {
+      blocks.push(block("bulleted_list_item", { rich_text: richText(bullet[1]) }));
+      continue;
+    }
+    const numbered = line.match(/^\d+\.\s+(.*)$/);
+    if (numbered) {
+      blocks.push(block("numbered_list_item", { rich_text: richText(numbered[1]) }));
+      continue;
+    }
+    blocks.push(block("paragraph", { rich_text: richText(line) }));
+  }
+
+  return blocks;
+}
+
+// 1 回の API 呼び出しで追加できる子ブロックは 100 件まで。
+async function appendBlocks(pageId, blocks) {
+  for (let i = 0; i < blocks.length; i += 100) {
+    await notion(`/blocks/${pageId}/children`, "PATCH", { children: blocks.slice(i, i + 100) });
+  }
+}
+
+// 既存の本文を消して書き直す。Markdown の変換を直したあとに使う。
+async function bodySet(args) {
+  if (!args.md) fail("--md は必須。");
+  if (!fs.existsSync(args.md)) fail(`${args.md} が見つからない。`);
+
+  const kind = /^TSK-/i.test(args._[0] || "") ? "task" : "project";
+  const page = await resolvePage(kind, args._[0]);
+  const blocks = bodyBlocks(fs.readFileSync(args.md, "utf8"));
+
+  const existing = await notion(`/blocks/${page.id}/children?page_size=100`);
+  if (args["dry-run"]) {
+    output({
+      dryRun: true,
+      page: summarize(page, kind),
+      removeBlocks: existing.results.length,
+      addBlocks: blocks.length,
+      types: [...new Set(blocks.map((b) => b.type))],
     });
+    return;
+  }
+
+  for (const child of existing.results) {
+    await notion(`/blocks/${child.id}`, "DELETE");
+  }
+  await appendBlocks(page.id, blocks);
+  output({ ...summarize(page, kind), removedBlocks: existing.results.length, addedBlocks: blocks.length });
 }
 
 // Notion のオートメーションは作成の数秒後に走り、API が送った値を上書きすることがある。
@@ -536,6 +657,7 @@ const COMMANDS = {
   "task-link-pr": taskLinkPr,
   "task-archive": taskArchive,
   "repo-create": repoCreate,
+  "body-set": bodySet,
   members,
   clients,
 };
@@ -559,6 +681,8 @@ if (!command || !COMMANDS[command]) {
   repo-create    --full <owner/name> --project <PJ-12> [--name <表示名>] [--url <URL>]
                  [--visibility public|private] [--branch <既定ブランチ>] [--description <説明>]
                  [--dry-run]   フルネームが同じ行があれば更新する
+  body-set       <PJ-12|TSK-12> --md <Markdown のパス> [--dry-run]
+                 既存の本文を消して書き直す
   members        在籍メンバーの一覧
   clients        クライアントの一覧`);
   process.exit(1);
