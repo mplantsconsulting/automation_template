@@ -4,6 +4,9 @@
 言語やフレームワークに依存しない共通ルールを中心に Markdown で管理します。
 特定の技術は推奨候補に留め、言語固有の書式や Lint 設定は各プロジェクト側で定義してください。
 
+初めての方は [start.md](start.md) を読んでください。
+案件の資料 1 枚から、Notion のプロジェクトとタスクを作り、最初の PR を出すまでの手順です。
+
 ## 使い方
 
 ### 新規プロジェクトで使う
@@ -89,6 +92,7 @@ node scripts/notion.mjs members        # 接続確認
 ```text
 automation_template/
 ├── README.md          # このファイル
+├── start.md           # 案件資料から最初の PR までの手順
 ├── CLAUDE.md          # AI エージェント向けの入口
 ├── CHANGELOG.md       # ルール改訂履歴
 ├── .claude/commands/  # 案件資料からプロジェクト、タスク、PR を作るコマンド
