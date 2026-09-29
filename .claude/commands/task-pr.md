@@ -42,7 +42,8 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Bash(node scripts/notion.mjs
    node scripts/notion.mjs task-status $1 --status レビュー
    ```
 
-10. CI の結果を確認し、PR の URL とタスクの状態を報告する。
+10. 親タスクの本文を直す。「子タスク」の該当行に PR を添え、「現在地」を今日の日付で書き換える。子の範囲を変えた場合は「進め方」も直す（[rules/notion.md](../../rules/notion.md) の「親タスク」）。
+11. CI の結果を確認し、PR の URL とタスクの状態を報告する。
 
 ## 注意
 
