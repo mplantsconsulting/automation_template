@@ -502,8 +502,14 @@ async function taskGet(args) {
       });
     }
   }
+  // PR 本文の 2 行目に親タスクを書くため、親があれば返す（rules/git.md）
+  const parentRel = page.properties?.親アイテム?.relation || [];
+  const parent = parentRel.length
+    ? summarize(await notion(`/pages/${parentRel[0].id}`), "task")
+    : null;
   output({
     ...summarize(page, "task"),
+    parent,
     status: page.properties?.ステータス?.status?.name || null,
     kind: page.properties?.工数区分?.select?.name || null,
     priority: page.properties?.優先度?.select?.name || null,
