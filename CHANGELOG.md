@@ -7,6 +7,7 @@
 
 ## 2026-10
 
+- 2026-10-02 変更 rules/git.md, templates/PULL_REQUEST_TEMPLATE.md, .claude/commands/task-pr.md: 節の名前「特に見てほしいところ」を「レビューのポイント」に変えた
 - 2026-10-02 変更 rules/git.md, templates/PULL_REQUEST_TEMPLATE.md, .claude/commands/task-pr.md: PR の概要に、プロジェクト全体で何を進めているかと、この PR がその中のどの段階かを書く。全体の流れの節は作らず、位置は概要の数文で示す
 - 2026-10-01 変更 rules/git.md, templates/PULL_REQUEST_TEMPLATE.md, .claude/commands/task-pr.md, scripts/notion.mjs: 親タスクがあれば PR 本文の 2 行目に親タスクへのリンクを置く。task-get が親タスクを返すようにした
 - 2026-10-01 変更 rules/git.md, templates/PULL_REQUEST_TEMPLATE.md, .claude/commands/task-pr.md, start.md: PR 本文の構成を変更。最初の見出しを「目的」から「概要」に変え、「設計上の判断」を「特に見てほしいところ」にまとめた。「確認方法と結果」と「全体の流れ」の節は作らない。本文を短く書く（1 項目 1〜2 文、太字は数か所まで）を推奨に足した
