@@ -34,6 +34,7 @@
 | [rules/docs.md](rules/docs.md) | 文書を書くとき。Markdown、README、引き継ぎ |
 | [rules/frontend.md](rules/frontend.md) | 画面を作るとき。技術選定、部品、状態、操作性 |
 | [rules/ci.md](rules/ci.md) | CI を触るとき。Lint、Formatter、パイプライン |
+| [rules/infra.md](rules/infra.md) | クラウドの構成をコードで書くとき。構成管理、データ、権限、テスト、デプロイ |
 | [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク |
 
 各ファイルはテーマごとに節を作り、その中を強度で分けます。
