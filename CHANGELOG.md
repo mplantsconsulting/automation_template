@@ -7,6 +7,7 @@
 
 ## 2026-10
 
+- 2026-10-20 変更 rules/git.md: コミットのルールを足した。要約と本文は日本語（種別だけ英語）、ステージするファイルの名指し、コミット前の Lint・型・テストを必須に、別の作業がある作業ツリーでの `git worktree` と AI のコミットへの `Co-Authored-By` を推奨に
 - 2026-10-15 追加 rules/infra.md, README.md, templates/PULL_REQUEST_TEMPLATE.md: クラウドの構成をコードで書くときのルールを新設。構成管理、データを持つリソース、権限とネットワーク、テスト、デプロイ。PR のセルフチェックにインフラの項目を足した
 - 2026-10-15 変更 rules/git.md: PR の差分の行数にロックファイルと自動生成ファイルを数えない
 - 2026-10-02 変更 rules/git.md, templates/PULL_REQUEST_TEMPLATE.md, .claude/commands/task-pr.md: レビューのポイントは、何をするところかを先に普通の言葉で書き、コード上の名前は括弧で添える
