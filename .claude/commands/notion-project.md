@@ -6,7 +6,7 @@ allowed-tools: Read, Glob, Grep, Bash(node scripts/notion.mjs:*)
 
 案件資料 `$1` を読み、Notion のプロジェクトを 1 件作る。
 
-ルールは [rules/notion.md](../../rules/notion.md) の「各データベースの使い分け」に従う。
+ルールは [rules/notion.md](../../rules/notion.md) に従う。必ず埋める項目は [reference/notion-workspace.md](../../reference/notion-workspace.md) の「各データベースの使い分け」にある。
 
 ## 手順
 
@@ -35,5 +35,5 @@ allowed-tools: Read, Glob, Grep, Bash(node scripts/notion.mjs:*)
 ## 注意
 
 - 資料本文はプロジェクトページの本文へ入る。`--md $1` を付けると資料をそのまま本文にする。
-- 同名のプロジェクトが既にある場合は作らず、既存のものを示す。
+- 同名のプロジェクトが既にある場合は作らず、既存のものを示す。`project-create` は同名を見つけると `--dry-run` でもエラーで止まり、既存の番号と URL を出す。
 - 数値(売上、コスト、工数)は資料に明記されている場合だけ入れる。推測で埋めない。

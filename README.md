@@ -37,6 +37,9 @@
 | [rules/infra.md](rules/infra.md) | クラウドの構成をコードで書くとき。構成管理、データ、権限、テスト、デプロイ |
 | [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク |
 
+AWS のアーキテクチャを設計するときは、上記に加えて [aws/](aws/) を読む。
+AWS 固有の要件整理、設計判断、技術統制、自動検証、例外管理の正は `aws/` とする。
+
 各ファイルはテーマごとに節を作り、その中を強度で分けます。
 新しいカテゴリを追加するときは [rules/_template.md](rules/_template.md) を使います。
 
@@ -93,6 +96,7 @@ automation_template/
 ├── CLAUDE.md          # Claude Code が読む短い案内
 ├── AGENTS.md          # Codex など他のツールが読む短い案内。CLAUDE.md と同内容
 ├── CHANGELOG.md       # ルール改訂履歴
+├── aws/               # AWS の設計手順、統制、自動検証、テンプレート
 ├── rules/             # カテゴリごとのルール本体
 ├── reference/         # 現状を写した一覧。変わったら直す
 ├── templates/         # コピーして使うファイル

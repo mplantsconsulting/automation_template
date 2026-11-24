@@ -1,0 +1,20 @@
+exception_id: "EX-<YYYY>-<連番>"
+rule_id: "<対象ルール ID>"
+resource: "<対象リソース>"
+environment: "<対象環境>"
+
+reason: "<例外が必要な理由>"
+risk:
+  level: "<critical|high|medium|low>"
+  description: "<起こり得る影響>"
+
+compensating_controls:
+  - control: "<補完策>"
+    verification: "<確認方法>"
+    evidence: "<証跡>"
+
+approved_by: "<承認者>"
+approved_at: "<ISO 8601>"
+expires_at: "<ISO 8601>"
+remediation_ticket: "<解消タスク>"
+status: "<proposed|approved|expired|closed>"

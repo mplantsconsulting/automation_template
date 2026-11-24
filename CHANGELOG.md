@@ -5,6 +5,11 @@
 形式: `- YYYY-MM-DD 種別 対象ファイル: 内容`
 種別は `追加` / `変更` / `削除` のいずれか。
 
+## 2026-11
+
+- 2026-11-24 変更 scripts/notion.mjs, .claude/commands/notion-project.md: `project-create` が同名のプロジェクトを見つけたら作らずに止まるようにした。コマンドが参照する「各データベースの使い分け」のリンク先を reference/notion-workspace.md に直した
+- 2026-11-13 追加 aws/, README.md, AGENTS.md, CLAUDE.md, rules/infra.md: AWS の要件整理、設計判断、技術標準、自動検証、例外管理を一続きに扱うアーキテクチャ設計標準を追加
+
 ## 2026-10
 
 - 2026-10-30 変更 rules/git.md, templates/PULL_REQUEST_TEMPLATE.md: 残る制約に、ルールから外れた点の弁明（PR やファイルの行数が目安を超えた理由など）を書かない。セルフチェックの 300 行の項目から「しない理由を書いた」を外した

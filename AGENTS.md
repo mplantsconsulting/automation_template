@@ -23,6 +23,7 @@
 ファイルの一覧と読む場面は [README.md](README.md) の「ルール一覧」にあります。
 常に [rules/general.md](rules/general.md) と [rules/git.md](rules/git.md) を読み、
 作業内容に応じて残りを開いてください。
+AWS のアーキテクチャを設計、レビュー、実装するときは [aws/AGENTS.md](aws/AGENTS.md) も読んでください。
 
 「推奨」「任意」「例外」と明記した項目以外は必須です。
 

@@ -1,0 +1,38 @@
+rule_id: "<CATEGORY-NNN>"
+version: "1.0"
+title: "<ルール名>"
+category: "<security|network|reliability|operations|cost|data>"
+severity: "<critical|high|medium|low>"
+
+applicability:
+  environments:
+    - "<対象環境>"
+  resource_types:
+    - "<対象リソース種別>"
+  conditions:
+    - "<適用条件>"
+
+expected:
+  description: "<合格となる状態>"
+
+verification:
+  type: "<A|B|C>"
+  method: "<iac_static_analysis|runtime_test|expert_review>"
+  target: "<設定パス・試験・確認項目>"
+  operator: "<判定方法>"
+  value: "<期待値>"
+
+enforcement:
+  on_failure: "<block_merge|block_deployment|require_review|record_finding>"
+
+exception:
+  allowed: <true|false>
+  requires:
+    - "<必要な承認・補完策>"
+
+evidence:
+  - "<検査結果・試験結果・承認記録>"
+
+rationale: "<ルールが必要な理由>"
+references:
+  - "<AWS 公式資料 URL>"

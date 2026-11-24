@@ -405,8 +405,19 @@ async function projectCreate(args) {
   if (!args.client) fail("--client は必須。rules/notion.md でクライアントを必須にしている。");
   if (!args.pm && !args.dev) fail("--pm か --dev のどちらかは必須。担当のいない案件を作らない。");
 
+  const sameName = await queryAll(DB.project, {
+    property: TITLE.project,
+    title: { equals: args.name },
+  });
+  if (sameName.length) {
+    fail(
+      `「${args.name}」は既にある。作らずに既存のものを使う: ` +
+        sameName.map((p) => `${uniqueIdOf(p) || ""} ${p.url}`.trim()).join(" / "),
+    );
+  }
+
   const properties = {
-    [TITLE.project]: { title: [{ text: { content: args.name } }] },
+    [TITLE.project]:{ title: [{ text: { content: args.name } }] },
     クライアント: { relation: await relationIds("client", args.client) },
     ステータス: { status: { name: requireChoice("--status", args.status, PROJECT_STATUS) || "未着手" } },
     開始日: { date: { start: args.start || today() } },

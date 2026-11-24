@@ -1,0 +1,62 @@
+version: "1.0"
+project:
+  name: "<プロジェクト名>"
+  environment_scope:
+    - "<対象環境>"
+  owners:
+    business: "<責任者>"
+    architecture: "<責任者>"
+    security: "<責任者>"
+    operations: "<責任者>"
+    cost: "<責任者>"
+
+requirements:
+  - id: "<BR|FR|NFR>-<分類>-<連番>"
+    category: "<business|functional|performance|availability|recovery|security|operations|cost|data>"
+    statement: "<要件>"
+    priority: "<must|should|could>"
+    scope:
+      - "<対象環境・機能>"
+    conditions:
+      "<条件名>": "<値。未確認なら記入せず open_questions へ移す>"
+    measurement:
+      method: "<測定方法>"
+      acceptance: "<合格条件>"
+    verification:
+      type: "<A|B|C>"
+      method: "<静的検査・試験・レビュー>"
+      evidence: "<証跡>"
+    source: "<出典>"
+    owner: "<責任者>"
+    status: "<draft|approved|rejected>"
+
+constraints:
+  - id: "CON-<連番>"
+    statement: "<変更できない条件>"
+    source: "<出典>"
+    impact:
+      - "<影響する設計判断>"
+
+assumptions:
+  - id: "ASM-<連番>"
+    statement: "<未確認の仮定>"
+    reason: "<仮定が必要な理由>"
+    affected_decisions:
+      - "<ADR または設計箇所>"
+    invalidation_condition: "<失効する条件>"
+    owner: "<確認責任者>"
+    due: "<YYYY-MM-DD>"
+
+open_questions:
+  - id: "Q-<連番>"
+    question: "<確認事項>"
+    impact: "<未確定による設計への影響>"
+    owner: "<確認責任者>"
+    due: "<YYYY-MM-DD>"
+
+approvals:
+  gate_1:
+    status: "<pending|approved|rejected>"
+    approved_by: "<承認者>"
+    approved_at: "<ISO 8601>"
+    note: "<条件や未決事項>"
