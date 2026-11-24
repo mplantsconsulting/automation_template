@@ -7,6 +7,10 @@
 
 ## 2026-11
 
+- 2026-11-24 変更 reference/estimate-baseline.md: バック（AI・OCR）の基準を 2 / 4 / 8 時間に下げ、精度の目標がある場合は調整で上げる
+
+- 2026-11-24 変更 reference/estimate-baseline.md: レビュー（設計）の基準を 1.5 / 3 / 6 時間に下げた
+
 - 2026-11-24 変更 rules/notion.md, scripts/notion.mjs, .claude/commands/task-pr.md, start.md: タスクを完了にするときは必ず実績工数を入れる。既に値があっても入れ直し、子のある親は子の実績がそろうまで完了にできない。AI は実績工数を推測せず利用者に聞く
 
 - 2026-11-24 変更 rules/notion.md, reference/notion-workspace.md, scripts/notion.mjs, start.md: 子のない親タスクは、親に実績工数を入れる。実績は子のないタスクに入れ、子のある親には入れない
