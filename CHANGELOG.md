@@ -7,6 +7,8 @@
 
 ## 2026-11
 
+- 2026-11-24 変更 rules/notion.md, reference/estimate-baseline.md, .claude/commands/notion-project.md: 見積は親タスクの名前、目的、案件資料だけで考え、子タスクの中身から種別や数を拾わない。子の数はレビュー（実装）の本数にだけ使う
+
 - 2026-11-24 変更 reference/estimate-baseline.md: バック（AI・OCR）の基準を 2 / 4 / 8 時間に下げ、精度の目標がある場合は調整で上げる
 
 - 2026-11-24 変更 reference/estimate-baseline.md: レビュー（設計）の基準を 1.5 / 3 / 6 時間に下げた
