@@ -7,6 +7,8 @@
 
 ## 2026-11
 
+- 2026-11-24 変更 rules/notion.md: レビュー（実装）の本数に、PR を作らない子（レビューそのもの、PM の作業、記録用）を数えない
+
 - 2026-11-24 追加 reference/estimate-baseline.md, rules/notion.md, scripts/notion.mjs, .claude/commands/notion-tasks.md: タスク種別に修正・手戻りを足し、修正系の分類（指摘対応、不具合・見た目の修正、作り直し）を決めた。修正・手戻りは見積に入れず実績だけを記録する
 
 - 2026-11-24 変更 rules/notion.md, reference/estimate-baseline.md, .claude/commands/notion-project.md: 見積は親タスクの名前、目的、案件資料だけで考え、子タスクの中身から種別や数を拾わない。子の数はレビュー（実装）の本数にだけ使う
