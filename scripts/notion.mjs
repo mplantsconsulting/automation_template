@@ -501,8 +501,8 @@ async function projectGet(args) {
   });
 }
 
-// 見積は親タスクにだけ、実績は子タスクにだけ入れる（rules/notion.md）。
-// 親ごとに見積と子の実績の合計を並べ、親の見積の合計を予想開発時間へ入れる。
+// 見積は親タスクにだけ、実績は子のないタスクにだけ入れる（rules/notion.md）。
+// 親ごとに見積と実績（子があれば子の合計）を並べ、親の見積の合計を予想開発時間へ入れる。
 async function projectEstimate(args) {
   const page = await resolvePage("project", args._[0]);
   const tasks = await queryAll(DB.task, {
@@ -516,15 +516,19 @@ async function projectEstimate(args) {
     const children = tasks.filter((t) => parentIdOf(t) === p.id);
     const done = children.filter((c) => c.properties?.ステータス?.status?.name === "完了").length;
     const estimate = p.properties?.見積工数h?.number ?? null;
-    const actual = children.reduce((sum, c) => sum + (c.properties?.実績工数h?.number ?? 0), 0);
+    // 子のない親は、親に入れた実績を使う。
+    const actual = children.length
+      ? children.reduce((sum, c) => sum + (c.properties?.実績工数h?.number ?? 0), 0)
+      : p.properties?.実績工数h?.number ?? 0;
+    const isOpen = children.length ? done < children.length : p.properties?.ステータス?.status?.name !== "完了";
     return {
       id: uniqueIdOf(p),
       name: titleOf(p, "task"),
       estimateHours: estimate,
-      childActualHours: actual,
+      actualHours: actual,
       children: `${done}/${children.length}`,
-      // 子が残っているのに実績が見積に届いた親。利用者に知らせる。
-      overrun: estimate !== null && actual >= estimate && done < children.length,
+      // 終わっていないのに実績が見積に届いた親。利用者に知らせる。
+      overrun: estimate !== null && actual >= estimate && isOpen,
     };
   });
 
@@ -630,12 +634,12 @@ async function taskStatus(args) {
   if (!status) fail("--status は必須。");
   const actual = parseHours("--actual", args.actual);
   const page = await resolvePage("task", args._[0]);
-  const isChild = Boolean(parentIdOf(page));
+  const hasChildren = (page.properties?.サブアイテム?.relation || []).length > 0;
 
-  // 実績は子タスクにだけ入れる。親にも入れるとプロジェクトの合計で二重に数える（rules/notion.md）。
-  if (actual !== undefined && !isChild) fail("親タスクには実績工数を入れない。実績は子タスクにだけ入れる。");
-  if (status === "完了" && isChild && actual === undefined && page.properties?.実績工数h?.number == null) {
-    fail("子タスクを完了にするときは --actual で実績工数を入れる。");
+  // 実績は子のないタスクにだけ入れる。子のある親にも入れると、プロジェクトの合計で二重に数える（rules/notion.md）。
+  if (actual !== undefined && hasChildren) fail("子のある親タスクには実績工数を入れない。実績は子タスクに入れる。");
+  if (status === "完了" && !hasChildren && actual === undefined && page.properties?.実績工数h?.number == null) {
+    fail("子のないタスクを完了にするときは --actual で実績工数を入れる。");
   }
 
   const properties = { ステータス: { status: { name: status } } };
@@ -801,7 +805,7 @@ if (!command || !COMMANDS[command]) {
                  (--estimate <h> | --parent <TSK-3>)   見積は親だけ。子には入れない
   task-get       <TSK-12|URL|名前>
   task-status    <TSK-12> --status 未着手|進行中|レビュー|完了|保留 [--actual <h>] [--dry-run]
-                 子を完了にするときは --actual が必須。親には入れない
+                 子のないタスクを完了にするときは --actual が必須。子のある親には入れない
   task-link-pr   <TSK-12> --url <PR の URL> [--title <PR タイトル>] [--dry-run]
   task-archive   <TSK-12> [--dry-run]   ゴミ箱へ移す。UI から元へ戻せる
   repo-create    --full <owner/name> --project <PJ-12> [--name <表示名>] [--url <URL>]

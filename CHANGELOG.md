@@ -7,6 +7,8 @@
 
 ## 2026-11
 
+- 2026-11-24 変更 rules/notion.md, reference/notion-workspace.md, scripts/notion.mjs, start.md: 子のない親タスクは、親に実績工数を入れる。実績は子のないタスクに入れ、子のある親には入れない
+
 - 2026-11-24 変更 reference/estimate-baseline.md, scripts/notion.mjs: 見積の種別のドキュメントを、ドキュメント（リポジトリ）0.5 / 1 / 3 時間と、パワポを含むドキュメント（説明資料）4 / 8 / 16 時間に分けた
 
 - 2026-11-24 変更 rules/notion.md, reference/estimate-baseline.md: 見積の数はファイルや文書の数ではなく基準の単位で数え、同じ PR に入る修正は子タスク 1 件として数える
