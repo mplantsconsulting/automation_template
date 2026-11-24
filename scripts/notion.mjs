@@ -30,9 +30,33 @@ const TITLE = {
 };
 
 const TASK_STATUS = ["保留", "未着手", "進行中", "レビュー", "完了"];
-const PROJECT_STATUS = ["保留", "未着手", "進行中", "中止", "完了"];
+const PROJECT_STATUS = ["保留", "要件定義中", "PoC", "進行中", "テスト中", "完了", "中止", "エラー対応中"];
 const PRIORITY = ["高", "中", "低"];
 const TASK_KIND = ["開発", "PM"];
+// 見積の種別。reference/estimate-baseline.md と Notion の選択肢に合わせる。
+const TASK_TYPE = [
+  "調査",
+  "ドキュメント",
+  "レビュー（実装）",
+  "レビュー（設計）",
+  "リリース・引き継ぎ",
+  "フロント（設計）",
+  "フロント（土台）",
+  "フロント（画面の実装）",
+  "フロント（バックエンド連携）",
+  "フロント（画面の調整）",
+  "フロント（操作テスト・エラーチェック）",
+  "バック（設計）",
+  "バック（土台）",
+  "バック（処理）",
+  "バック（ファイル入出力）",
+  "バック（外部連携）",
+  "バック（AI・OCR）",
+  "バック（定期実行）",
+  "バック（結合確認）",
+  "インフラ（設計）",
+  "インフラ（構築）",
+];
 
 // ---- 基盤 ---------------------------------------------------------------
 
@@ -182,6 +206,16 @@ function requireChoice(label, value, allowed) {
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
+
+// 工数（時間）の引数を数値にする。数字でない値を黙って空欄にしない。
+function parseHours(label, value) {
+  if (value === undefined) return undefined;
+  const hours = typeof value === "string" ? Number(value) : NaN;
+  if (!Number.isFinite(hours) || hours <= 0) fail(`${label} は正の数（時間）にする。指定値: ${value}`);
+  return hours;
+}
+
+const parentIdOf = (page) => page.properties?.親アイテム?.relation?.[0]?.id || null;
 
 function parseArgs(argv) {
   const args = { _: [] };
@@ -417,11 +451,12 @@ async function projectCreate(args) {
   }
 
   const properties = {
-    [TITLE.project]:{ title: [{ text: { content: args.name } }] },
+    [TITLE.project]: { title: [{ text: { content: args.name } }] },
     クライアント: { relation: await relationIds("client", args.client) },
-    ステータス: { status: { name: requireChoice("--status", args.status, PROJECT_STATUS) || "未着手" } },
     開始日: { date: { start: args.start || today() } },
   };
+  // 指定がなければ送らず、Notion 側の既定値に任せる。
+  if (args.status) properties.ステータス = { status: { name: requireChoice("--status", args.status, PROJECT_STATUS) } };
   if (args.due) properties.予定終了日 = { date: { start: args.due } };
   if (args.priority) properties.優先度 = { select: { name: requireChoice("--priority", args.priority, PRIORITY) } };
   if (args.kind) properties["ショット/ランニング"] = { select: { name: args.kind } };
@@ -456,9 +491,58 @@ async function projectGet(args) {
       id: uniqueIdOf(t),
       name: titleOf(t, "task"),
       status: t.properties?.ステータス?.status?.name || null,
+      isParent: !parentIdOf(t),
+      type: t.properties?.タスク種別?.select?.name || null,
       estimateHours: t.properties?.見積工数h?.number ?? null,
+      actualHours: t.properties?.実績工数h?.number ?? null,
       url: t.url,
     })),
+  });
+}
+
+// 見積は親タスクにだけ、実績は子タスクにだけ入れる（rules/notion.md）。
+// 親ごとに見積と子の実績の合計を並べ、親の見積の合計を予想開発時間へ入れる。
+async function projectEstimate(args) {
+  const page = await resolvePage("project", args._[0]);
+  const tasks = await queryAll(DB.task, {
+    property: "プロジェクト",
+    relation: { contains: page.id },
+  });
+
+  const parents = tasks.filter((t) => !parentIdOf(t));
+  if (!parents.length) fail("親タスクがない。先に親タスクを作り、見積を入れる。");
+  const rows = parents.map((p) => {
+    const children = tasks.filter((t) => parentIdOf(t) === p.id);
+    const done = children.filter((c) => c.properties?.ステータス?.status?.name === "完了").length;
+    const estimate = p.properties?.見積工数h?.number ?? null;
+    const actual = children.reduce((sum, c) => sum + (c.properties?.実績工数h?.number ?? 0), 0);
+    return {
+      id: uniqueIdOf(p),
+      name: titleOf(p, "task"),
+      estimateHours: estimate,
+      childActualHours: actual,
+      children: `${done}/${children.length}`,
+      // 子が残っているのに実績が見積に届いた親。利用者に知らせる。
+      overrun: estimate !== null && actual >= estimate && done < children.length,
+    };
+  });
+
+  const missing = rows.filter((r) => r.estimateHours === null);
+  if (missing.length) {
+    fail(`見積工数が空の親タスクがある: ${missing.map((r) => `${r.id} ${r.name}`).join(" / ")}`);
+  }
+  const total = rows.reduce((sum, r) => sum + r.estimateHours, 0);
+  const current = page.properties?.予想開発時間?.number ?? null;
+
+  if (!args["dry-run"] && current !== total) {
+    await notion(`/pages/${page.id}`, "PATCH", { properties: { 予想開発時間: { number: total } } });
+  }
+  output({
+    ...summarize(page, "project"),
+    ...(args["dry-run"] ? { dryRun: true } : {}),
+    parents: rows,
+    estimateTotalHours: total,
+    previousPlannedHours: current,
   });
 }
 
@@ -466,14 +550,21 @@ async function taskCreate(args) {
   if (!args.project) fail("--project は必須。プロジェクトに紐づかないタスクを作らない。");
   if (!args.name) fail("--name は必須。");
 
+  // 見積は親タスクにだけ入れる（rules/notion.md）。
+  const estimate = parseHours("--estimate", args.estimate);
+  if (args.parent && estimate !== undefined) fail("子タスクには見積を入れない。見積は親タスクにだけ入れる。");
+  if (!args.parent && estimate === undefined) fail("親タスクには --estimate が必須。プロジェクトを作るときに親ごとに見積もる。");
+
   const project = await resolvePage("project", args.project);
   const properties = {
     [TITLE.task]: { title: [{ text: { content: args.name } }] },
     プロジェクト: { relation: [{ id: project.id }] },
     ステータス: { status: { name: requireChoice("--status", args.status, TASK_STATUS) || "未着手" } },
   };
-  if (args.estimate !== undefined) properties.見積工数h = { number: Number(args.estimate) };
+  if (estimate !== undefined) properties.見積工数h = { number: estimate };
   if (args.kind) properties.工数区分 = { select: { name: requireChoice("--kind", args.kind, TASK_KIND) } };
+  // タスク種別は任意。子タスクの実績を種別ごとに集計して、見積の基準を直すのに使う。
+  if (args.type) properties.タスク種別 = { select: { name: requireChoice("--type", args.type, TASK_TYPE) } };
   if (args.priority) properties.優先度 = { select: { name: requireChoice("--priority", args.priority, PRIORITY) } };
   if (args.due) properties.期日 = { date: { start: args.due } };
   if (args.start) properties.開始日 = { date: { start: args.start } };
@@ -523,8 +614,10 @@ async function taskGet(args) {
     parent,
     status: page.properties?.ステータス?.status?.name || null,
     kind: page.properties?.工数区分?.select?.name || null,
+    type: page.properties?.タスク種別?.select?.name || null,
     priority: page.properties?.優先度?.select?.name || null,
     estimateHours: page.properties?.見積工数h?.number ?? null,
+    actualHours: page.properties?.実績工数h?.number ?? null,
     due: page.properties?.期日?.date?.start || null,
     project,
     repos,
@@ -534,9 +627,19 @@ async function taskGet(args) {
 async function taskStatus(args) {
   const status = requireChoice("--status", args.status, TASK_STATUS);
   if (!status) fail("--status は必須。");
+  const actual = parseHours("--actual", args.actual);
   const page = await resolvePage("task", args._[0]);
+  const isChild = Boolean(parentIdOf(page));
+
+  // 実績は子タスクにだけ入れる。親にも入れるとプロジェクトの合計で二重に数える（rules/notion.md）。
+  if (actual !== undefined && !isChild) fail("親タスクには実績工数を入れない。実績は子タスクにだけ入れる。");
+  if (status === "完了" && isChild && actual === undefined && page.properties?.実績工数h?.number == null) {
+    fail("子タスクを完了にするときは --actual で実績工数を入れる。");
+  }
+
   const properties = { ステータス: { status: { name: status } } };
   if (status === "完了") properties.完了日 = { date: { start: args.date || today() } };
+  if (actual !== undefined) properties.実績工数h = { number: actual };
   if (args["dry-run"]) {
     output({ dryRun: true, task: summarize(page, "task"), properties });
     return;
@@ -668,6 +771,7 @@ async function clients() {
 const COMMANDS = {
   "project-create": projectCreate,
   "project-get": projectGet,
+  "project-estimate": projectEstimate,
   "task-create": taskCreate,
   "task-get": taskGet,
   "task-status": taskStatus,
@@ -686,13 +790,17 @@ if (!command || !COMMANDS[command]) {
   project-create --name <名前> --client <会社名> (--pm <氏名> | --dev <氏名,...>)
                  [--reviewer <氏名>] [--repo <リポジトリ名>] [--start YYYY-MM-DD]
                  [--due YYYY-MM-DD] [--priority 高|中|低] [--kind ショット|ランニング]
-                 [--md <案件資料のパス>] [--note <備考>] [--dry-run]
+                 [--md <案件資料のパス>] [--note <備考>] [--status <ステータス>] [--dry-run]
   project-get    <PJ-12|URL|名前>
-  task-create    --project <PJ-12> --name <名前> [--estimate <h>] [--kind 開発|PM]
+  project-estimate <PJ-12> [--dry-run]
+                 親ごとの見積と子の実績を並べ、親の見積の合計を予想開発時間へ入れる
+  task-create    --project <PJ-12> --name <名前> [--kind 開発|PM] [--type <タスク種別>]
                  [--priority 高|中|低] [--assignee <氏名>] [--due YYYY-MM-DD]
-                 [--parent <TSK-3>] [--body <説明>] [--dry-run]
+                 [--body <説明>] [--dry-run]
+                 (--estimate <h> | --parent <TSK-3>)   見積は親だけ。子には入れない
   task-get       <TSK-12|URL|名前>
-  task-status    <TSK-12> --status 未着手|進行中|レビュー|完了|保留 [--dry-run]
+  task-status    <TSK-12> --status 未着手|進行中|レビュー|完了|保留 [--actual <h>] [--dry-run]
+                 子を完了にするときは --actual が必須。親には入れない
   task-link-pr   <TSK-12> --url <PR の URL> [--title <PR タイトル>] [--dry-run]
   task-archive   <TSK-12> [--dry-run]   ゴミ箱へ移す。UI から元へ戻せる
   repo-create    --full <owner/name> --project <PJ-12> [--name <表示名>] [--url <URL>]

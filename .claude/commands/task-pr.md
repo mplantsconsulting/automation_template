@@ -10,7 +10,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Bash(node scripts/notion.mjs
 
 ## 手順
 
-1. `node scripts/notion.mjs task-get $1` でタスクを取得する。タスク名、説明、見積工数、対象リポジトリを確認する。
+1. `node scripts/notion.mjs task-get $1` でタスクを取得する。タスク名、説明、親タスク、対象リポジトリを確認する。
 2. 対象リポジトリが今いるリポジトリと違う場合は、その場で止めて利用者に伝える。
 3. `dev` の最新から作業ブランチを切る。名前は `type/短い説明` とし、`type` はコミットと同じ語彙から選ぶ。`dev` がないリポジトリでは `main` から切る。
 4. タスクのステータスを進行中にする。
@@ -50,6 +50,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Bash(node scripts/notion.mjs
 ## 注意
 
 - **マージはしない。** マージは利用者が判断する。
+- 完了にするのはマージの後で、利用者が行う。子タスクは `task-status TSK-000 --status 完了 --actual <時間>` で実績工数を一緒に入れる。
 - Issue/PR データベースへの相互リレーションは、GitHub からの同期後に付く。`task-link-pr` が `relationLinked: false` を返しても、本文へのリンクは付いている。
 - 実装できない理由が見つかった場合は、ブランチを作る前に止めて報告する。
 - 軽微な文書・設定変更でタスクがない場合は、タイトルのタスク ID と本文のタスク行を省く。

@@ -35,7 +35,7 @@
 | [rules/frontend.md](rules/frontend.md) | 画面を作るとき。技術選定、部品、状態、操作性 |
 | [rules/ci.md](rules/ci.md) | CI を触るとき。Lint、Formatter、パイプライン |
 | [rules/infra.md](rules/infra.md) | クラウドの構成をコードで書くとき。構成管理、データ、権限、テスト、デプロイ |
-| [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク |
+| [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク、見積 |
 
 AWS のアーキテクチャを設計するときは、上記に加えて [aws/](aws/) を読む。
 AWS 固有の要件整理、設計判断、技術統制、自動検証、例外管理の正は `aws/` とする。
@@ -58,6 +58,7 @@ AWS 固有の要件整理、設計判断、技術統制、自動検証、例外�
 | ファイル | 内容 |
 | --- | --- |
 | [reference/notion-workspace.md](reference/notion-workspace.md) | Notion のデータベース、列、選択肢、既知の癖 |
+| [reference/estimate-baseline.md](reference/estimate-baseline.md) | 見積の種別、数える単位、基準の値、改訂の記録 |
 
 ## テンプレート一覧
 
@@ -75,8 +76,8 @@ AWS 固有の要件整理、設計判断、技術統制、自動検証、例外�
 
 | コマンド | 入力 | 作るもの |
 | --- | --- | --- |
-| `/notion-project <資料のパス>` | 要件定義や提案資料の Markdown | Notion のプロジェクト 1 件 |
-| `/notion-tasks <PJ-000>` | プロジェクト | 親タスクと子タスク |
+| `/notion-project <資料のパス>` | 要件定義や提案資料の Markdown | Notion のプロジェクト 1 件、親タスクと見積 |
+| `/notion-tasks <PJ-000>` | 親タスクのあるプロジェクト | 子タスク |
 | `/task-pr <TSK-000>` | タスク | 作業ブランチ、実装、PR、タスクへの紐付け |
 
 ## ルールの改訂

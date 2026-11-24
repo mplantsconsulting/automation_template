@@ -7,6 +7,16 @@
 
 ## 2026-11
 
+- 2026-11-24 変更 reference/estimate-baseline.md, rules/notion.md, scripts/notion.mjs: レビューをレビュー（実装）とレビュー（設計）に分けた。実装の PR は 0.5 / 1 / 2 時間、設計は 3 / 6 / 12 時間
+
+- 2026-11-24 変更 reference/estimate-baseline.md: バック（定期実行）の含む作業に見張りと診断、実行ログを足した
+- 2026-11-24 追加 rules/notion.md, reference/notion-workspace.md, reference/estimate-baseline.md, .claude/commands/notion-tasks.md, scripts/notion.mjs: タスクに任意の列「タスク種別」を足し、子タスクに見積の種別を付ける（推奨）。種別ごとの実績で基準を直すのに使う
+- 2026-11-24 変更 reference/estimate-baseline.md, rules/notion.md: AI で実装する前提に見積の基準を変えた。実装の種別を下げ、レビュー（PR ごと）とフロント・バックの設計を種別に足した。先方確認と修正を外し、要件定義はプロジェクト作成前に終わっている前提で見積に入れない
+- 2026-11-24 変更 reference/estimate-baseline.md: 見積の種別から置き換えと要件の詰めを外した。置き換えはバック（処理）に含め、要件の詰めなど PM の作業は当面見積の対象にしない
+- 2026-11-24 変更 reference/estimate-baseline.md, start.md: 見積の種別を共通・フロント・バック・インフラの区分で並べ直し、処理と連携をバックの 7 種別（土台、処理、ファイル入出力、外部連携、AI・OCR、定期実行、結合確認）に置き換えた
+- 2026-11-24 変更 rules/notion.md, reference/estimate-baseline.md, .claude/commands/notion-project.md: 見積に工程のチェックリストを入れ、要らない工程には理由を書く。種別に要件の詰め、先方確認と修正、リリース・引き継ぎを足した。平均に加えて 85% の確率で収まる値を出し、先方にはそちらを伝える
+- 2026-11-24 変更 rules/notion.md, reference/estimate-baseline.md, reference/notion-workspace.md, .claude/commands/notion-project.md, start.md: 見積の基準の値を定めた（処理、連携、調査、ドキュメント、置き換え、インフラの設計と構築、フロントの 5 工程）。基準を出発点に AI が親ごとに調整し、理由を残す。見積工数と実績工数は手を動かした時間だけで、先方を待つ時間を入れない。start.md の実例の節を削除した
+- 2026-11-24 変更 rules/notion.md, reference/estimate-baseline.md, reference/notion-workspace.md, .claude/commands/notion-project.md, .claude/commands/notion-tasks.md, .claude/commands/task-pr.md, scripts/notion.mjs, start.md, README.md: 見積は親タスクにだけ、実績は子タスクにだけ入れる。見積はプロジェクトを作るときに種別ごとの量と基準の値、3 点見積で作り、親の見積の合計を予想開発時間に入れる。親タスクの作成を /notion-tasks から /notion-project へ移した。プロジェクトのステータスの一覧を実物に合わせた
 - 2026-11-24 変更 scripts/notion.mjs, .claude/commands/notion-project.md: `project-create` が同名のプロジェクトを見つけたら作らずに止まるようにした。コマンドが参照する「各データベースの使い分け」のリンク先を reference/notion-workspace.md に直した
 - 2026-11-13 追加 aws/, README.md, AGENTS.md, CLAUDE.md, rules/infra.md: AWS の要件整理、設計判断、技術標準、自動検証、例外管理を一続きに扱うアーキテクチャ設計標準を追加
 
