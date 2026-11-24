@@ -36,7 +36,8 @@ const TASK_KIND = ["開発", "PM"];
 // 見積の種別。reference/estimate-baseline.md と Notion の選択肢に合わせる。
 const TASK_TYPE = [
   "調査",
-  "ドキュメント",
+  "ドキュメント（リポジトリ）",
+  "ドキュメント（説明資料）",
   "レビュー（実装）",
   "レビュー（設計）",
   "リリース・引き継ぎ",
