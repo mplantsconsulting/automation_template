@@ -7,6 +7,8 @@
 
 ## 2026-11
 
+- 2026-11-24 変更 rules/notion.md, scripts/notion.mjs, .claude/commands/task-pr.md, start.md: タスクを完了にするときは必ず実績工数を入れる。既に値があっても入れ直し、子のある親は子の実績がそろうまで完了にできない。AI は実績工数を推測せず利用者に聞く
+
 - 2026-11-24 変更 rules/notion.md, reference/notion-workspace.md, scripts/notion.mjs, start.md: 子のない親タスクは、親に実績工数を入れる。実績は子のないタスクに入れ、子のある親には入れない
 
 - 2026-11-24 変更 reference/estimate-baseline.md, scripts/notion.mjs: 見積の種別のドキュメントを、ドキュメント（リポジトリ）0.5 / 1 / 3 時間と、パワポを含むドキュメント（説明資料）4 / 8 / 16 時間に分けた

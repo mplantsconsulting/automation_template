@@ -638,8 +638,17 @@ async function taskStatus(args) {
 
   // 実績は子のないタスクにだけ入れる。子のある親にも入れると、プロジェクトの合計で二重に数える（rules/notion.md）。
   if (actual !== undefined && hasChildren) fail("子のある親タスクには実績工数を入れない。実績は子タスクに入れる。");
-  if (status === "完了" && !hasChildren && actual === undefined && page.properties?.実績工数h?.number == null) {
-    fail("子のないタスクを完了にするときは --actual で実績工数を入れる。");
+  // 閉じるときは必ず実績を確かめる。既に値があっても省略させない（入れ忘れと見積の写しを防ぐ）。
+  if (status === "完了" && !hasChildren && actual === undefined) {
+    fail("子のないタスクを完了にするときは、--actual で実績工数を必ず入れる。既に値があっても入れ直す。");
+  }
+  if (status === "完了" && hasChildren) {
+    const missing = [];
+    for (const rel of page.properties.サブアイテム.relation) {
+      const child = await notion(`/pages/${rel.id}`);
+      if (child.properties?.実績工数h?.number == null) missing.push(`${uniqueIdOf(child)} ${titleOf(child, "task")}`);
+    }
+    if (missing.length) fail(`実績工数が空の子タスクがあるので、親を完了にできない: ${missing.join(" / ")}`);
   }
 
   const properties = { ステータス: { status: { name: status } } };
@@ -805,7 +814,7 @@ if (!command || !COMMANDS[command]) {
                  (--estimate <h> | --parent <TSK-3>)   見積は親だけ。子には入れない
   task-get       <TSK-12|URL|名前>
   task-status    <TSK-12> --status 未着手|進行中|レビュー|完了|保留 [--actual <h>] [--dry-run]
-                 子のないタスクを完了にするときは --actual が必須。子のある親には入れない
+                 完了にするときは --actual が必須（子のないタスク）。子のある親は子の実績がそろうまで完了にできない
   task-link-pr   <TSK-12> --url <PR の URL> [--title <PR タイトル>] [--dry-run]
   task-archive   <TSK-12> [--dry-run]   ゴミ箱へ移す。UI から元へ戻せる
   repo-create    --full <owner/name> --project <PJ-12> [--name <表示名>] [--url <URL>]
