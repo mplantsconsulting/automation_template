@@ -25,6 +25,7 @@ AI は [AGENTS.md](AGENTS.md) に従い、次を順に読みます。
 | [rules/engineering.md](rules/engineering.md) | アカウント、権限、ネットワーク、データ、信頼性、監視、費用 |
 | [rules/automation.md](rules/automation.md) | 自動検証、検証ゲート、例外、承認 |
 | [reference/service-selection.md](reference/service-selection.md) | サービス候補を絞るための変わりやすい参考情報 |
+| [reference/estimate-infra.md](reference/estimate-infra.md) | インフラの工数を見積もるときだけ読む。案件のレベルとブロック |
 
 ルートの `rules/general.md`、`rules/git.md`、`rules/infra.md` も適用します。
 競合した場合は、案件固有の承認済み要件、`aws/`、ルートの共通ルールの順で確認し、競合を黙って解決しません。
