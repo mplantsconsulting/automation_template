@@ -28,12 +28,10 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
 
 ### 2. 子タスクを作る
 
-4. 親ごとに作業を分ける。次を守る。
+4. 親の目的から作業を分ける。子の大きさと数の決まりは [rules/notion.md](../../rules/notion.md) の「タスク」と [rules/git.md](../../rules/git.md) の「Pull Request」に従う。あわせて次を守る。
 
-   - **1 子タスクが 1 PR に対応する粒度にする。** PR の差分が 300 行を超えそうなら分ける。
    - 学習・調査だけの子タスクは、成果物(判断、資料、方針)を名前に含める。
    - 既存タスクと重複するものは作らない。
-   - 1 つの親に子が 6 件を超える場合は、親の分け方を見直す。
 
 5. 各子タスクに次を決める。
 
@@ -42,7 +40,7 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
    | タスク名 | `--name` | `N-M. ` で始める。動詞で終える |
    | 親タスク | `--parent` | 必須。親の `TSK-000` |
    | 工数区分 | `--kind` | 開発 / PM |
-   | タスク種別 | `--type` | 任意。[reference/estimate-baseline.md](../../reference/estimate-baseline.md) の種別から 1 つ選ぶ。作り直しや手戻りは「修正・手戻り」。迷う場合は省く |
+   | タスク種別 | `--type` | 任意。[reference/estimate-baseline.md](../../reference/estimate-baseline.md) の種別から 1 つ選ぶ。修正系の付け方は [rules/notion.md](../../rules/notion.md) の「見積」に従う。迷う場合は省く |
    | 優先度 | `--priority` | 高 / 中 / 低 |
    | 担当者 | `--assignee` | 未定なら省く |
    | 期日 | `--due` | プロジェクトの予定終了日を超えない |
