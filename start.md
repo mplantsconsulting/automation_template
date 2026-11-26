@@ -7,14 +7,8 @@
 
 所要時間は、資料が手元にあれば 30 分ほどです。
 
-各手順は同じ並びで書いてあります。該当しない小見出しは省いています。
-
-| 小見出し | 中身 |
-| --- | --- |
-| あなたがすること | 聞かれること、確かめること、承認すること |
-| AI がすること | AI が順に行うこと |
-| コマンド | Claude Code で使うコマンド |
-| コマンドが使えない場合 | Codex などで AI が直接組み立てるスクリプト |
+各手順には「あなたがすること」（聞かれること、確かめること、承認すること）と、使うコマンドだけを書いています。
+AI が行う手順の詳しい中身は、各コマンドのファイル（`.claude/commands/`）にあります。
 
 ## このファイルを読んだ AI への指示
 
@@ -30,7 +24,7 @@
 4. Notion と GitHub へ書き込む前に、必ず内容を見せて承認を得る。承認なしで作らない。
 5. 途中で不明な点が出たら、推測で埋めずに聞く。ただし聞くのは 1 回にまとめる。
 6. `/notion-project` のようなコマンドが使えない環境（Codex など）では、
-   各手順の「コマンドが使えない場合」にある `node scripts/notion.mjs ...` を直接組み立てて実行する。
+   `.claude/commands/` の同じ名前のファイルを開き、その手順どおりに `node scripts/notion.mjs ...` を実行する。
 7. 実装に入る前に [rules/general.md](rules/general.md) と [rules/git.md](rules/git.md) を読む。
    実装中は [rules/source.md](rules/source.md) と [rules/testing.md](rules/testing.md) に従う。
 8. 作業する場所は手順によって変わる。手順 4 までは automation_template の中で実行し、
@@ -112,18 +106,7 @@ node scripts/notion.mjs members    # 名前が並べば接続できている
 ### あなたがすること
 
 1. AI に聞かれた項目（プロジェクト名、クライアント、PM または開発担当のうち、資料に無いもの）に答える。
-2. 作られる内容が表で示されるので、よければ承認する。
-
-### AI がすること
-
-1. 資料を読み、プロジェクト名、クライアント、担当、期間などを埋める。
-2. クライアント名と担当者名を、Notion の登録名と照らし合わせる。
-3. 足りない項目を 1 回にまとめて聞く。
-4. `--dry-run` で作られる内容を示し、承認を得てから作る。
-5. `PJ-000` という番号と Notion の URL を返す。以降はこの番号で指す。
-
-- 同じ名前のプロジェクトがあると、作らずに止まり、既存の番号を示します。
-- 売上やコストの数値は、資料に明記がある場合だけ入れます。全社ダッシュボードの集計に効くためです。
+2. 作られる内容が表で示されるので、よければ承認する。`PJ-000` という番号が返り、以降はこの番号で指します。
 
 ### コマンド
 
@@ -131,20 +114,7 @@ node scripts/notion.mjs members    # 名前が並べば接続できている
 /notion-project docs/requirements.md
 ```
 
-このコマンドは、手順 3 の親タスクと見積まで続けて進めます。
-
-### コマンドが使えない場合
-
-```bash
-node scripts/notion.mjs clients     # クライアント名を確認する
-node scripts/notion.mjs members     # 担当者名を確認する
-node scripts/notion.mjs project-create \
-  --name "<プロジェクト名>" --client "<会社名>" --pm "<氏名>" --dev "<氏名>" \
-  --start 2026-10-01 --due 2026-12-31 --priority 中 --kind ショット \
-  --md docs/requirements.md --dry-run
-```
-
-`--dry-run` で内容を見せ、承認を得てから外して実行します。
+手順は [notion-project](.claude/commands/notion-project.md) にあります。このコマンドは手順 3 まで続けて進めます。
 
 ## 3. 親タスクの目的と見積
 
@@ -156,29 +126,11 @@ node scripts/notion.mjs project-create \
 2. 親ごとの「目的」を確かめる。何のためにやるか、終わった状態、範囲（何を、いくつ）が書いてあるかを見てください。**見積はこの目的だけを見て作るので、範囲が足りないとその分の見積が抜けます。**
 3. 親ごとの見積の内訳と調整の理由、合計を見て、よければ承認する。
 
-先方に工数や日程を伝えるときは、平均ではなく 85% の値を使ってください（[rules/estimate.md](rules/estimate.md)）。
-
-### AI がすること
-
-1. 資料から機能のまとまりを洗い出し、親タスクの候補を示す。
-2. 決まった数に合わせて、実施順に `1.` から番号を振る。
-3. 親ごとに「目的」を書く。範囲は案件資料の「規模」から取り、資料に無い数は推測せずに聞く。
-4. 確認した名前と目的だけを見て、親ごとに見積を作る。決まりは [rules/estimate.md](rules/estimate.md)、種別と値は [見積の基準](reference/estimate-baseline.md) にある。
-5. 親ごとの内訳、見積、85% の値を示し、承認を得てから親タスクを作って本文に目的と見積を書く。
-6. 親の見積の合計を、プロジェクトの `予想開発時間` に入れる。
+先方に工数や日程を伝えるときは、平均ではなく 85% の値を使ってください。見積の決まりは [rules/estimate.md](rules/estimate.md)、種別と値は [見積の基準](reference/estimate-baseline.md) にあります。
 
 ### コマンド
 
-手順 2 の `/notion-project` がそのまま続けて行います。
-
-### コマンドが使えない場合
-
-```bash
-node scripts/notion.mjs task-create --project PJ-000 \
-  --name "1. データ取得・投入基盤構築" --estimate 24 --kind 開発 --priority 中
-node scripts/notion.mjs body-set TSK-000 --md <親の本文のパス>
-node scripts/notion.mjs project-estimate PJ-000     # 予想開発時間を入れる
-```
+手順 2 の `/notion-project` が続けて行います。
 
 ## 4. リポジトリを作る
 
@@ -189,13 +141,7 @@ node scripts/notion.mjs project-estimate PJ-000     # 予想開発時間を入�
 1. リポジトリ名を決める。
 2. 作る内容を見て承認する。
 
-### AI がすること
-
-1. GitHub にリポジトリを作り、`dev` を既定のブランチにする。
-2. `rules/`、`reference/`、`.claude/commands/`、`scripts/notion.mjs`、`.github/` をこのリポジトリからコピーする。AI が同じルールとコマンドを使えるようになります。
-3. Notion にもリポジトリを登録し、プロジェクトへ紐付ける。
-
-ブランチ保護は設定しません。理由は [rules/git.md](rules/git.md) にあります。
+AI は GitHub にリポジトリを作って `dev` を既定のブランチにし、`rules/`、`reference/`、`.claude/commands/`、`scripts/notion.mjs`、`.github/` をこのリポジトリからコピーします。Notion にもリポジトリを登録し、プロジェクトへ紐付けます。ブランチ保護は設定しません（理由は [rules/git.md](rules/git.md)）。
 
 ### コマンド
 
@@ -219,53 +165,22 @@ node scripts/notion.mjs repo-create \
 1. 親ごとにまとめた子タスクの一覧を見て、よければ承認する。
 2. 分けてみて親の見積が明らかに合わないと指摘されたら、親の見積を直すかを決める。
 
-### AI がすること
-
-1. 親の目的から作業を分け、子タスクの候補を作る。子の大きさと数の決まりは [rules/notion.md](rules/notion.md) の「タスク」、タスク種別の付け方は [rules/estimate.md](rules/estimate.md) の「種別の振り分け」にある。
-2. 一覧を示し、承認を得てから登録する。
-3. 親の本文に「進め方」「子タスク」「現在地」を書き足す。
-
-命名は番号で順序が分かる形にします。
-
-| 段 | 形式 | 例 |
-| --- | --- | --- |
-| 親 | `N. 機能のまとまり` | `2. データ取得・投入基盤構築` |
-| 子 | `N-M. 具体的な作業` | `2-1. レジュメ取り込みの入力処理を実装` |
-
 ### コマンド
 
 ```text
 /notion-tasks PJ-000
 ```
 
-### コマンドが使えない場合
-
-```bash
-node scripts/notion.mjs task-create --project PJ-000 --parent TSK-000 \
-  --name "1-1. レジュメ取り込みの入力処理を実装" --kind 開発 --due 2026-10-17
-```
+手順は [notion-tasks](.claude/commands/notion-tasks.md) にあります。
 
 ## 6. 実装して PR を出す
 
-子タスク 1 件を実装し、PR を出してタスクへ紐付けます。
+子タスク 1 件を実装し、PR を出してタスクへ紐付けます。AI はマージしません。
 
 ### あなたがすること
 
 1. 子タスクの番号を渡す。
-2. PR の差分が 300 行を超えそうだと止まったら、タスクを分けるかを決める。
-
-### AI がすること
-
-1. タスクを読み、対象のリポジトリを確認する。
-2. タスクのステータスを進行中にする。
-3. `dev` の最新から `type/短い説明` のブランチを切る。
-4. 実装し、テストを書く。
-5. Lint、型、テスト、ビルドを通す。
-6. `type: 要約（TSK-000）` の形式でコミットする。
-7. PR を作る。本文の 1 行目はタスクへのリンク、最初の見出しは `## 概要`。
-8. タスクへ PR を紐付け、ステータスをレビューにする。
-
-マージはしません。
+2. PR の差分が大きくなりそうだと止まったら、タスクを分けるかを決める。
 
 ### コマンド
 
@@ -273,19 +188,7 @@ node scripts/notion.mjs task-create --project PJ-000 --parent TSK-000 \
 /task-pr TSK-000
 ```
 
-### コマンドが使えない場合
-
-```bash
-node scripts/notion.mjs task-get TSK-000                  # 対象リポジトリを確認
-node scripts/notion.mjs task-status TSK-000 --status 進行中
-git switch dev && git pull --ff-only && git switch -c <type>/<短い説明>
-# 実装、テスト、lint、型、ビルド
-git commit -m "<type>: <要約>（TSK-000）"
-git push -u origin <type>/<短い説明>
-gh pr create --base dev --title "<type>: <要約>（TSK-000）" --body-file <本文>
-node scripts/notion.mjs task-link-pr TSK-000 --url <PR の URL> --title "<PR タイトル>"
-node scripts/notion.mjs task-status TSK-000 --status レビュー
-```
+手順は [task-pr](.claude/commands/task-pr.md) にあります。
 
 ## 7. レビューとマージ
 
@@ -293,16 +196,8 @@ node scripts/notion.mjs task-status TSK-000 --status レビュー
 
 ### あなたがすること
 
-1. レビューを受けてから、自分でマージする。
-   - 作業ブランチから `dev` へは squash merge。
-   - `dev` から `main` へは merge commit。
-   - マージ後にブランチを削除する。
-2. タスクを完了にし、**実績工数を必ず入れる。** 実績は子タスクに入れます。子のない親タスクだけは親に入れます（[rules/estimate.md](rules/estimate.md) の「実績」）。
-
-### AI がすること
-
-1. 完了にする前に、実績工数をあなたに聞く。
-2. 親ごとの見積と実績を示す。
+1. レビューを受けてから、自分でマージする。マージの方法は [rules/git.md](rules/git.md) の「マージ」に従います。
+2. タスクを完了にし、**実績工数を必ず入れる。** 実績は子タスクに入れます。子のない親タスクだけは親に入れます（[rules/estimate.md](rules/estimate.md) の「実績」）。AI が閉じるときは、実績工数をあなたに聞きます。
 
 ### コマンド
 

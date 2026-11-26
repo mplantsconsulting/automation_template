@@ -31,6 +31,14 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
 3. クライアント名とメンバー名は Notion の登録名と一致させる。曖昧なら `node scripts/notion.mjs clients` と `node scripts/notion.mjs members` で確認する。
 4. 不足している必須項目(プロジェクト名、クライアント、PM または開発担当)をまとめて 1 度だけ聞く。
 5. `--dry-run` を付けて実行し、作られる内容を表形式で示す。
+
+   ```bash
+   node scripts/notion.mjs project-create \
+     --name "<プロジェクト名>" --client "<会社名>" --pm "<氏名>" --dev "<氏名>" \
+     --start 2026-10-01 --due 2026-12-31 --priority 中 --kind ショット \
+     --md $1 --dry-run
+   ```
+
 6. **利用者の確認を取ってから** `--dry-run` を外して実行する。Notion は共有ワークスペースであり、作成後の取り消しに手間がかかる。
 7. 作成された `PJ-000` と URL を控える。
 
