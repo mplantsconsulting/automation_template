@@ -7,6 +7,8 @@
 
 ## 2026-11
 
+- 2026-11-26 変更 start.md, .claude/commands/notion-project.md: start.md の各手順を「あなたがすること」とコマンドだけにし、AI の手順とスクリプトの書き方はコマンドのファイルへ寄せた。/notion-project に project-create の例を足した
+
 - 2026-11-26 追加 rules/estimate.md, rules/notion.md, README.md, templates/CLAUDE_template.md, .claude/commands/, start.md, reference/: 見積と実績の決まりを rules/notion.md から rules/estimate.md へ分けた。rules/notion.md には Notion のどの列と本文に入れるかだけを残した
 
 - 2026-11-26 変更 rules/notion.md, reference/estimate-baseline.md, .claude/commands/, start.md, CLAUDE.md, AGENTS.md: 見積の決まりを rules/notion.md だけに書き、reference は種別・値・定義・計算式、コマンドは手順とリンクにした。start.md は手順とリンクを中心にし、利用者に要る 2 つの一文（85% の値を伝える、実績の入れ先）だけ残した。要件定義を入れない、インフラ（設計）を足す、悲観を上限にする、小数第 1 位まで、修正系の扱いをルールの必須にし、子が 6 件を超えたら見直すを必須に戻した。種別の名前を 3 か所でそろえる決まりは CLAUDE.md と AGENTS.md へ移した
