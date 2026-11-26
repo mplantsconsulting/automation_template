@@ -13,6 +13,7 @@ AWS アーキテクチャを設計、レビュー、実装するときの AI へ
 7. `aws/rules/automation.md`
 
 AWS サービスの候補を検討するときだけ `aws/reference/service-selection.md` を読みます。
+インフラの工数を見積もるときだけ `aws/reference/estimate-infra.md` を読みます。
 参考情報を必須ルールとして扱いません。
 
 ## 守ること
