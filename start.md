@@ -37,6 +37,7 @@ AI が行う手順の詳しい中身は、各コマンドのファイル（`.cla
 案件資料 (Markdown)                              … 1. 案件資料を書く
    ↓  /notion-project
 🚀 プロジェクト  PJ-000                           … 2. プロジェクトを作る
+                 削減時間を見積もる（完了後に先方の回答で置き換え）
    └ 親タスク    1. 機能のまとまり                … 3. 親タスクの目的と見積
                     目的（範囲 = 何を、いくつ）を書いて確認
                     目的だけを見て見積もる
@@ -107,6 +108,7 @@ node scripts/notion.mjs members    # 名前が並べば接続できている
 
 1. AI に聞かれた項目（プロジェクト名、クライアント、PM または開発担当のうち、資料に無いもの）に答える。
 2. 作られる内容が表で示されるので、よければ承認する。`PJ-000` という番号が返り、以降はこの番号で指します。
+3. 削減時間の見積を確かめる。自動化する業務ごとに、月に何回行うか、1 回が自動化の前と後でどれだけかかるかが示されます。数が分からない業務は聞かれます。完了するまでは概算です（[rules/estimate.md](rules/estimate.md) の「削減時間の見積」）。
 
 ### コマンド
 
@@ -198,12 +200,14 @@ node scripts/notion.mjs repo-create \
 
 1. レビューを受けてから、自分でマージする。マージの方法は [rules/git.md](rules/git.md) の「マージ」に従います。
 2. タスクを完了にし、**実績工数を必ず入れる。** 実績は子タスクに入れます。子のない親タスクだけは親に入れます（[rules/estimate.md](rules/estimate.md) の「実績」）。AI が閉じるときは、実績工数をあなたに聞きます。
+3. プロジェクトの最後のタスクを閉じたら、先方に自動化後の実際の作業時間を聞き、回答をプロジェクトの本文に貼り付けて値を置き換える（[rules/estimate.md](rules/estimate.md) の「削減時間の見積」）。
 
 ### コマンド
 
 ```bash
 node scripts/notion.mjs task-status TSK-000 --status 完了 --actual 6
 node scripts/notion.mjs project-estimate PJ-000 --dry-run   # 親ごとの見積と実績を見る
+node scripts/notion.mjs project-savings PJ-000 --before 46 --after 12   # 完了後、先方の回答で置き換える
 ```
 
 ## つまずきやすいところ
