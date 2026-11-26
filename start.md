@@ -207,7 +207,7 @@ node scripts/notion.mjs repo-create \
 ```bash
 node scripts/notion.mjs task-status TSK-000 --status 完了 --actual 6
 node scripts/notion.mjs project-estimate PJ-000 --dry-run   # 親ごとの見積と実績を見る
-node scripts/notion.mjs project-savings PJ-000 --before 46 --after 12   # 完了後、先方の回答で置き換える
+node scripts/notion.mjs project-savings PJ-000 --before 46 --after 12 --answer   # 完了後、先方の回答で置き換える
 ```
 
 ## つまずきやすいところ

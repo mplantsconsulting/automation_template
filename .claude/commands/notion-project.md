@@ -29,7 +29,7 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
    | リポジトリ | `--repo` | 既存リポジトリがあれば紐付ける |
 
 3. クライアント名とメンバー名は Notion の登録名と一致させる。曖昧なら `node scripts/notion.mjs clients` と `node scripts/notion.mjs members` で確認する。
-4. 不足している必須項目(プロジェクト名、クライアント、PM または開発担当)をまとめて 1 度だけ聞く。
+4. 不足している必須項目(プロジェクト名、クライアント、PM または開発担当)と、手順 8 の削減時間の見積に要る数のうち資料に無いものを、まとめて 1 度だけ聞く。
 5. `--dry-run` を付けて実行し、作られる内容を表形式で示す。
 
    ```bash
@@ -46,11 +46,11 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
 
 自動化する業務が月に何回行われ、1 回あたりどれだけ短くなるかで、月の削減時間を概算する。決まりは [rules/estimate.md](../../rules/estimate.md) の「削減時間の見積」に従う。
 
-8. 案件資料の「背景」と「想定効果」から、自動化する業務ごとに、月の回数、自動化前の 1 回の時間、自動化後に 1 回に残る時間を拾う。運用の月の時間も見込む。資料に無い数は推測せずに、まとめて 1 度だけ聞く。
-9. 内訳の表（業務、月の回数、前の 1 回、後の 1 回、運用、月の削減時間）と、自動化前と後の月の作業時間を示し、**利用者の確認を取ってから**列と本文に書き込む。内訳の形は [reference/estimate-baseline.md](../../reference/estimate-baseline.md) の「削減時間の内訳の例」に従う。
+8. 案件資料の「背景」と「想定効果」から、自動化する業務ごとに、月の回数、自動化前の 1 回の時間、自動化後に 1 回に残る時間と残る作業を拾う。運用の月の時間も見込む。資料に無い数は推測せず、手順 4 で一緒に聞いておく。
+9. 内訳の表（業務、月の回数、自動化前の 1 回、自動化後の 1 回、自動化後に残る作業、月の削減時間。運用は行として足す）と、自動化前と後の月の作業時間を示し、**利用者の確認を取ってから**列と本文に書き込む。内訳の形は [reference/estimate-baseline.md](../../reference/estimate-baseline.md) の「削減時間の内訳の例」に従う。
 
    ```bash
-   node scripts/notion.mjs project-savings PJ-000 --before 52 --after 14
+   node scripts/notion.mjs project-savings PJ-000 --before 46 --after 9
    node scripts/notion.mjs body-set PJ-000 --md <削減時間の見積の節のパス> --append
    ```
 
