@@ -8,6 +8,7 @@
 
 ## 2026-11
 
+- 2026-11-26 変更 .claude/commands/, start.md, README.md, rules/estimate.md: プロジェクト作成から親タスクの見積までを、テーマごとの 4 往復で進めるようにした（#8）
 - 2026-11-26 追加 rules/, reference/, .claude/commands/notion-project.md, scripts/notion.mjs, start.md: プロジェクトを作るときに削減時間を見積もり、完了後に先方の回答で置き換える（#7）
 - 2026-11-26 変更 aws/, reference/estimate-baseline.md, CHANGELOG.md: インフラ見積のレベルとブロックを aws/reference へ移し、aws/ の例外の書き方をそろえた（#6）
 - 2026-11-26 変更 start.md: 各手順を利用者がすることとコマンドだけにした（#5）

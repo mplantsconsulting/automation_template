@@ -23,7 +23,7 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
 ### 1. 現状を読む
 
 1. `node scripts/notion.mjs project-get $1` でプロジェクトと既存タスクを取得する。`isParent` が `true` のものが親タスク。
-2. 親タスクが無い場合、または見積の入っていない親がある場合は、その場で止める。先に `/notion-project` の「親タスクを作り、見積を入れる」を行うよう伝える。
+2. 親タスクが無い場合、または見積の入っていない親がある場合は、その場で止める。先に `/notion-project` の「往復 3. 親タスクと目的」と「往復 4. 見積」を行うよう伝える。
 3. `$2` があればその資料を読む。なければプロジェクトページ本文、親タスクの本文、リポジトリの README を読む。
 
 ### 2. 子タスクを作る
