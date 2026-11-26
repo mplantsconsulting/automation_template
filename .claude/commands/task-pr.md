@@ -50,7 +50,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Bash(node scripts/notion.mjs
 ## 注意
 
 - **マージはしない。** マージは利用者が判断する。
-- 完了にするのはマージの後で、利用者が行う。実績工数の入れ方は [rules/notion.md](../../rules/notion.md) の「タスク」に従い、`task-status TSK-000 --status 完了 --actual <時間>` で入れる。
+- 完了にするのはマージの後で、利用者が行う。実績工数の入れ方は [rules/estimate.md](../../rules/estimate.md) の「実績」に従い、`task-status TSK-000 --status 完了 --actual <時間>` で入れる。
 - Issue/PR データベースへの相互リレーションは、GitHub からの同期後に付く。`task-link-pr` が `relationLinked: false` を返しても、本文へのリンクは付いている。
 - 実装できない理由が見つかった場合は、ブランチを作る前に止めて報告する。
 - 軽微な文書・設定変更でタスクがない場合は、タイトルのタスク ID と本文のタスク行を省く。

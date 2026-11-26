@@ -40,7 +40,7 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
    | タスク名 | `--name` | `N-M. ` で始める。動詞で終える |
    | 親タスク | `--parent` | 必須。親の `TSK-000` |
    | 工数区分 | `--kind` | 開発 / PM |
-   | タスク種別 | `--type` | 任意。[reference/estimate-baseline.md](../../reference/estimate-baseline.md) の種別から 1 つ選ぶ。修正系の付け方は [rules/notion.md](../../rules/notion.md) の「見積」に従う。迷う場合は省く |
+   | タスク種別 | `--type` | 任意。[reference/estimate-baseline.md](../../reference/estimate-baseline.md) の種別から 1 つ選ぶ。修正系の付け方は [rules/estimate.md](../../rules/estimate.md) の「種別の振り分け」に従う。迷う場合は省く |
    | 優先度 | `--priority` | 高 / 中 / 低 |
    | 担当者 | `--assignee` | 未定なら省く |
    | 期日 | `--due` | プロジェクトの予定終了日を超えない |
