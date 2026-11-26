@@ -33,4 +33,5 @@ AWS のアーキテクチャを設計、レビュー、実装するときは [aw
 - 言語やフレームワークに依存しない内容にする。特定のツールは推奨か例として示す。
 - 変わりやすい一覧は `rules/` ではなく [reference/](reference/) に置く。
 - 変更したら [CHANGELOG.md](CHANGELOG.md) に 1 行追記する。
+- 見積の種別を変えたら、[reference/estimate-baseline.md](reference/estimate-baseline.md)、Notion のタスク種別の選択肢、`scripts/notion.mjs` の `TASK_TYPE` を同じ日に直す。
 - このリポジトリは `main` だけで運用する。
