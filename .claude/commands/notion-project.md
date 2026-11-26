@@ -6,7 +6,7 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
 
 案件資料 `$1` を読み、Notion のプロジェクトを 1 件作る。続けて親タスクの目的を書き、その目的を見て親ごとに見積を入れる。
 
-ルールは [rules/notion.md](../../rules/notion.md) に従う。見積の決め方は同じファイルの「見積」、種別と基準の値は [reference/estimate-baseline.md](../../reference/estimate-baseline.md) にある。必ず埋める項目は [reference/notion-workspace.md](../../reference/notion-workspace.md) の「各データベースの使い分け」にある。
+ルールは [rules/notion.md](../../rules/notion.md) に従う。見積の決め方は [rules/estimate.md](../../rules/estimate.md)、種別と基準の値は [reference/estimate-baseline.md](../../reference/estimate-baseline.md) にある。必ず埋める項目は [reference/notion-workspace.md](../../reference/notion-workspace.md) の「各データベースの使い分け」にある。
 
 ## 手順
 
@@ -43,7 +43,7 @@ allowed-tools: Read, Glob, Grep, Write, Bash(node scripts/notion.mjs:*)
 9. 聞いた数に合わせてまとまりを統合または分割し、実施順に `1.` から番号を振る。名前は `N. 機能のまとまり` にする。
 10. 親ごとに「目的」を書く。書く内容は [rules/notion.md](../../rules/notion.md) の「親タスク」に従う。範囲は案件資料の「規模」から取り、資料に無い数は推測せずに聞く。
 11. **利用者に目的を見せて、確認を取る。** ここで直した範囲が、そのまま見積の入力になる。
-12. 確認した親の名前と目的だけを見て、親ごとに見積を作る。決まりは [rules/notion.md](../../rules/notion.md) の「見積」、種別と値は [reference/estimate-baseline.md](../../reference/estimate-baseline.md) に従う。目的に書いていない作業が要ると気づいたら、目的に戻って範囲を足す。基準にない作業は手順 13 で一緒に聞く。
+12. 確認した親の名前と目的だけを見て、親ごとに見積を作る。決まりは [rules/estimate.md](../../rules/estimate.md)、種別と値は [reference/estimate-baseline.md](../../reference/estimate-baseline.md) に従う。目的に書いていない作業が要ると気づいたら、目的に戻って範囲を足す。基準にない作業は手順 13 で一緒に聞く。
 
 13. 登録前に、親ごとの内訳と見積工数、85% の値、要らない工程を表で示す。プロジェクト全体の平均と 85% の値も示す。基準にない作業があれば、ここでまとめて聞く。
 14. **利用者の確認を取ってから** 親タスクを見積と一緒に登録する。

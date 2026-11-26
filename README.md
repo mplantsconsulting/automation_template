@@ -35,7 +35,8 @@
 | [rules/frontend.md](rules/frontend.md) | 画面を作るとき。技術選定、部品、状態、操作性 |
 | [rules/ci.md](rules/ci.md) | CI を触るとき。Lint、Formatter、パイプライン |
 | [rules/infra.md](rules/infra.md) | クラウドの構成をコードで書くとき。構成管理、データ、権限、テスト、デプロイ |
-| [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク、見積 |
+| [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク、見積と実績の入れ先 |
+| [rules/estimate.md](rules/estimate.md) | 工数を見積もるとき、実績を入れるとき。見積の作り方、種別の振り分け、実績、基準の見直し |
 
 AWS のアーキテクチャを設計するときは、上記に加えて [aws/](aws/) を読む。
 AWS 固有の要件整理、設計判断、技術統制、自動検証、例外管理の正は `aws/` とする。

@@ -27,7 +27,7 @@
 - rules/source.md
 - rules/testing.md
 
-ドキュメントを書くときは rules/docs.md、Notion を使うときは rules/notion.md に従う。
+ドキュメントを書くときは rules/docs.md、Notion を使うときは rules/notion.md、工数を見積もるときは rules/estimate.md に従う。
 
 このプロジェクト固有のルールは以下。
 

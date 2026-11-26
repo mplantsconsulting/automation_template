@@ -52,7 +52,7 @@
 
 ## 工数の列
 
-どの列にいつ値を入れるかの決まりは、[rules/notion.md](../rules/notion.md) の「タスク」と「見積」にあります。
+どの列にいつ値を入れるかの決まりは、[rules/notion.md](../rules/notion.md) の「見積と実績の入れ先」と、[rules/estimate.md](../rules/estimate.md) にあります。
 
 | データベース | 列 | 種類 | 中身 |
 | --- | --- | --- | --- |
