@@ -20,14 +20,14 @@
 
 ## コーディングルール
 
-共通ルールは `rules/` 配下に従う。特に次を必ず読む。
+共通ルールは `rules/` 配下に従う。ファイルの一覧と読む場面は rules/README.md にある。特に次を必ず読む。
 
 - rules/general.md
 - rules/git.md
 - rules/source.md
 - rules/testing.md
 
-ドキュメントを書くときは rules/docs.md、Notion を使うときは rules/notion.md、工数を見積もるときは rules/estimate.md に従う。
+ドキュメントを書くときは rules/docs.md、Notion を使うときは rules/notion.md、工数を見積もるときは rules/estimate.md、PR をレビューするときは rules/review.md に従う。
 
 このプロジェクト固有のルールは以下。
 

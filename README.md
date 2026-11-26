@@ -25,33 +25,7 @@
 
 ## ルール一覧
 
-| ファイル | 読む場面 |
-| --- | --- |
-| [rules/general.md](rules/general.md) | 常に。全体原則、命名、セキュリティ、標準ツール |
-| [rules/git.md](rules/git.md) | 常に。ブランチ、コミット、Pull Request |
-| [rules/review.md](rules/review.md) | PR をレビューするとき。観点の選び方、指摘の書き方、見た範囲 |
-| [rules/source.md](rules/source.md) | 実装するとき。構成、関数、設定、エラー、ログ、コメント |
-| [rules/testing.md](rules/testing.md) | テストを書くとき。方針、書き方、外部依存 |
-| [rules/docs.md](rules/docs.md) | 文書を書くとき。Markdown、README、引き継ぎ |
-| [rules/frontend.md](rules/frontend.md) | 画面を作るとき。技術選定、部品、状態、操作性 |
-| [rules/ci.md](rules/ci.md) | CI を触るとき。Lint、Formatter、パイプライン |
-| [rules/infra.md](rules/infra.md) | クラウドの構成をコードで書くとき。構成管理、データ、権限、テスト、デプロイ |
-| [rules/notion.md](rules/notion.md) | Notion を使うとき。置き場所、ページ、タスク、見積と実績の入れ先 |
-| [rules/estimate.md](rules/estimate.md) | 工数を見積もるとき、実績を入れるとき。見積の作り方、種別の振り分け、実績、基準の見直し |
-
-AWS のアーキテクチャを設計するときは、上記に加えて [aws/](aws/) を読む。
-AWS 固有の要件整理、設計判断、技術統制、自動検証、例外管理の正は `aws/` とする。
-
-各ファイルはテーマごとに節を作り、その中を強度で分けます。
-新しいカテゴリを追加するときは [rules/_template.md](rules/_template.md) を使います。
-
-| 表記 | 意味 |
-| --- | --- |
-| 必須 | 例外なく守る。違反はレビューで差し戻す |
-| 推奨 | 原則守る。外す場合は理由を PR に書く |
-| 任意 | 必要に応じて採用する |
-
-「推奨」「任意」「例外」と明記した項目以外は必須です。
+ルールのファイルと読む場面の一覧は [rules/README.md](rules/README.md) にあります。
 
 ## 参照資料
 
@@ -81,7 +55,7 @@ AWS 固有の要件整理、設計判断、技術統制、自動検証、例外�
 | `/notion-project <資料のパス>` | 要件定義や提案資料の Markdown | 利用者と 4 往復して、Notion のプロジェクト 1 件、削減時間、親タスクと見積 |
 | `/notion-tasks <PJ-000>` | 親タスクのあるプロジェクト | 子タスク |
 | `/task-pr <TSK-000>` | タスク | 作業ブランチ、実装、PR、タスクへの紐付け |
-| `/review [PR 番号]` | PR、または今のブランチの差分 | ルールに沿った指摘と、見た範囲の表 |
+| `/rule-review [PR 番号]` | PR、または今のブランチの差分 | ルールに沿った指摘と、見た範囲の表 |
 
 ## ルールの改訂
 
@@ -95,16 +69,16 @@ AWS 固有の要件整理、設計判断、技術統制、自動検証、例外�
 
 ```text
 automation_template/
-├── README.md          # このファイル。ルール一覧の正
+├── README.md          # このファイル
 ├── start.md           # 案件資料から最初の PR までの手順。AI への指示の正
 ├── CLAUDE.md          # Claude Code が読む短い案内
 ├── AGENTS.md          # Codex など他のツールが読む短い案内。CLAUDE.md と同内容
 ├── CHANGELOG.md       # ルール改訂履歴
 ├── aws/               # AWS の設計手順、統制、自動検証、テンプレート
-├── rules/             # カテゴリごとのルール本体
+├── rules/             # カテゴリごとのルール本体。README.md がルール一覧の正
 ├── reference/         # 現状を写した一覧。変わったら直す
 ├── templates/         # コピーして使うファイル
-├── .claude/commands/  # プロジェクト、タスク、PR を作るコマンド
+├── .claude/commands/  # プロジェクト、タスク、PR を作るコマンドと、PR をレビューするコマンド
 └── scripts/
     └── notion.mjs     # Notion を読み書きする CLI
 ```

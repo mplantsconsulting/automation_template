@@ -17,11 +17,11 @@
 - 案件のコードをこのリポジトリに置かない。リポジトリを作ったら、以降はそちらで作業する。
 - `NOTION_TOKEN` をログや CI へ出さない。給与を含むページへ到達できる。
 - ブランチ保護は設定しない。理由は [rules/git.md](rules/git.md) にある。
-- レビューを頼まれたら [rules/review.md](rules/review.md) に従う。Claude Code では `/review` を使う。
+- レビューを頼まれたら [rules/review.md](rules/review.md) に従う。Claude Code では `/rule-review` を使う。
 
 ## ルール
 
-ファイルの一覧と読む場面は [README.md](README.md) の「ルール一覧」にあります。
+ファイルの一覧と読む場面は [rules/README.md](rules/README.md) にあります。
 常に [rules/general.md](rules/general.md) と [rules/git.md](rules/git.md) を読み、
 作業内容に応じて残りを開いてください。
 AWS のアーキテクチャを設計、レビュー、実装するときは [aws/AGENTS.md](aws/AGENTS.md) も読んでください。

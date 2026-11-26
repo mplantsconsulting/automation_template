@@ -241,7 +241,7 @@ node scripts/notion.mjs project-savings PJ-000 --before 46 --after 12 --answer  
 ## 次に読むもの
 
 [rules/general.md](rules/general.md) と [rules/git.md](rules/git.md) は常に読みます。
-残りは作業内容に応じて開きます。ファイルの一覧と読む場面は [README.md](README.md) の「ルール一覧」にあります。
+残りは作業内容に応じて開きます。ファイルの一覧と読む場面は [rules/README.md](rules/README.md)にあります。
 
 Notion のデータベース名や列の一覧は [reference/notion-workspace.md](reference/notion-workspace.md) にあります。
 見積の種別と基準の値は [reference/estimate-baseline.md](reference/estimate-baseline.md) にあります。
