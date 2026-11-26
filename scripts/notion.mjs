@@ -369,11 +369,23 @@ async function bodySet(args) {
   const page = await resolvePage(kind, args._[0]);
   const blocks = bodyBlocks(fs.readFileSync(args.md, "utf8"));
 
-  const existing = await notion(`/blocks/${page.id}/children?page_size=100`);
+  // --append は既存の本文を残し、末尾へ足す。プロジェクトの本文（案件資料）に節を足すときに使う。
+  const append = Boolean(args.append);
+  // 100 ブロックを超える本文も消し切るため、最後のページまで読む。
+  const existing = { results: [] };
+  if (!append) {
+    let cursor;
+    do {
+      const page100 = await notion(`/blocks/${page.id}/children?page_size=100${cursor ? `&start_cursor=${cursor}` : ""}`);
+      existing.results.push(...page100.results);
+      cursor = page100.has_more ? page100.next_cursor : undefined;
+    } while (cursor);
+  }
   if (args["dry-run"]) {
     output({
       dryRun: true,
       page: summarize(page, kind),
+      append,
       removeBlocks: existing.results.length,
       addBlocks: blocks.length,
       types: [...new Set(blocks.map((b) => b.type))],
@@ -436,6 +448,31 @@ function summarize(page, kind) {
 }
 
 // ---- コマンド -----------------------------------------------------------
+
+// 削減時間の見積（rules/estimate.md）を、自動化の前と後の月の作業時間としてプロジェクトの列に入れる。
+// 削減時間と削減額は Notion の数式が出す。作るときは概算、完了後は先方の回答で置き換える。
+async function projectSavings(args) {
+  const before = parseHours("--before", args.before);
+  const after = parseHours("--after", args.after);
+  if (before === undefined || after === undefined) fail("--before と --after は必須。自動化の前と後の月の作業時間（時間）。");
+  // 概算では、削減にならない値は見直させる。完了後の先方の回答（--answer）は、効果が出なかった場合も
+  // そのまま記録しないと、数式が出ていない削減額を出し続けるので止めない。
+  const isAnswer = Boolean(args.answer);
+  if (after >= before && !isAnswer) fail(`自動化後（${after}）が自動化前（${before}）以上で、削減にならない。概算を見直す。完了後の先方の回答なら --answer を付ける。`);
+  const warning = after >= before ? "先方の回答では削減が出ていない。理由を本文に残す。" : null;
+  const page = await resolvePage("project", args._[0]);
+  const properties = { 自動化前月間作業時間: { number: before }, 自動化後月間作業時間: { number: after } };
+  const previous = {
+    before: page.properties?.自動化前月間作業時間?.number ?? null,
+    after: page.properties?.自動化後月間作業時間?.number ?? null,
+  };
+  if (args["dry-run"]) {
+    output({ dryRun: true, ...summarize(page, "project"), answer: isAnswer, previous, properties, monthlyReductionHours: Math.round((before - after) * 10) / 10, ...(warning ? { warning } : {}) });
+    return;
+  }
+  const updated = await notion(`/pages/${page.id}`, "PATCH", { properties });
+  output({ ...summarize(updated, "project"), answer: isAnswer, previous, before, after, monthlyReductionHours: Math.round((before - after) * 10) / 10, ...(warning ? { warning } : {}) });
+}
 
 async function projectCreate(args) {
   if (!args.name) fail("--name は必須。");
@@ -788,6 +825,7 @@ const COMMANDS = {
   "project-create": projectCreate,
   "project-get": projectGet,
   "project-estimate": projectEstimate,
+  "project-savings": projectSavings,
   "task-create": taskCreate,
   "task-get": taskGet,
   "task-status": taskStatus,
@@ -822,8 +860,10 @@ if (!command || !COMMANDS[command]) {
   repo-create    --full <owner/name> --project <PJ-12> [--name <表示名>] [--url <URL>]
                  [--visibility public|private] [--branch <既定ブランチ>] [--description <説明>]
                  [--dry-run]   フルネームが同じ行があれば更新する
-  body-set       <PJ-12|TSK-12> --md <Markdown のパス> [--dry-run]
-                 既存の本文を消して書き直す
+  project-savings <PJ-12> --before <h> --after <h> [--answer] [--dry-run]
+                 自動化の前と後の月の作業時間を入れる。完了後の先方の回答は --answer を付ける
+  body-set       <PJ-12|TSK-12> --md <Markdown のパス> [--append] [--dry-run]
+                 既存の本文を消して書き直す。--append なら末尾へ足す
   members        在籍メンバーの一覧
   clients        クライアントの一覧`);
   process.exit(1);
