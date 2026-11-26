@@ -29,6 +29,7 @@
 | --- | --- |
 | [rules/general.md](rules/general.md) | 常に。全体原則、命名、セキュリティ、標準ツール |
 | [rules/git.md](rules/git.md) | 常に。ブランチ、コミット、Pull Request |
+| [rules/review.md](rules/review.md) | PR をレビューするとき。観点の選び方、指摘の書き方、見た範囲 |
 | [rules/source.md](rules/source.md) | 実装するとき。構成、関数、設定、エラー、ログ、コメント |
 | [rules/testing.md](rules/testing.md) | テストを書くとき。方針、書き方、外部依存 |
 | [rules/docs.md](rules/docs.md) | 文書を書くとき。Markdown、README、引き継ぎ |
@@ -80,6 +81,7 @@ AWS 固有の要件整理、設計判断、技術統制、自動検証、例外�
 | `/notion-project <資料のパス>` | 要件定義や提案資料の Markdown | 利用者と 4 往復して、Notion のプロジェクト 1 件、削減時間、親タスクと見積 |
 | `/notion-tasks <PJ-000>` | 親タスクのあるプロジェクト | 子タスク |
 | `/task-pr <TSK-000>` | タスク | 作業ブランチ、実装、PR、タスクへの紐付け |
+| `/review [PR 番号]` | PR、または今のブランチの差分 | ルールに沿った指摘と、見た範囲の表 |
 
 ## ルールの改訂
 

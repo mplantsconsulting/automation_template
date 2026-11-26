@@ -17,6 +17,7 @@
 - 案件のコードをこのリポジトリに置かない。リポジトリを作ったら、以降はそちらで作業する。
 - `NOTION_TOKEN` をログや CI へ出さない。給与を含むページへ到達できる。
 - ブランチ保護は設定しない。理由は [rules/git.md](rules/git.md) にある。
+- レビューを頼まれたら [rules/review.md](rules/review.md) に従う。Claude Code では `/review` を使う。
 
 ## ルール
 
