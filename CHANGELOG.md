@@ -7,7 +7,7 @@
 
 ## 2026-11
 
-- 2026-11-26 変更 rules/notion.md, reference/estimate-baseline.md, .claude/commands/, start.md: 見積の決まりを rules/notion.md だけに書き、reference は値と定義、コマンドと start.md は手順とリンクだけにした。要件定義を入れない、インフラ（構築）の数え方、重なりを避ける決まりを reference からルールへ移した
+- 2026-11-26 変更 rules/notion.md, reference/estimate-baseline.md, .claude/commands/, start.md, CLAUDE.md, AGENTS.md: 見積の決まりを rules/notion.md だけに書き、reference は種別・値・定義・計算式、コマンドは手順とリンクにした。start.md は手順とリンクを中心にし、利用者に要る 2 つの一文（85% の値を伝える、実績の入れ先）だけ残した。要件定義を入れない、インフラ（設計）を足す、悲観を上限にする、小数第 1 位まで、修正系の扱いをルールの必須にし、子が 6 件を超えたら見直すを必須に戻した。種別の名前を 3 か所でそろえる決まりは CLAUDE.md と AGENTS.md へ移した
 
 - 2026-11-26 変更 reference/estimate-baseline.md, scripts/notion.mjs, rules/notion.md, .claude/commands/notion-tasks.md, start.md: 見積の種別を 24 個の平らな一覧に整理した。学習・調査（PoC を含む）、リファクタリング、データ分析、機械学習を足し、インフラ（構築）を案件のレベル別（L1〜L3）にしてブロックで数える。フロントとバックの設計・土台、結合確認をまとめた
 
