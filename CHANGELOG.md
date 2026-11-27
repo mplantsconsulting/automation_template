@@ -8,6 +8,7 @@
 
 ## 2026-11
 
+- 2026-11-27 追加 .claude/commands/, scripts/notion.mjs, start.md, README.md, rules/git.md: リポジトリを作る /repo-setup、タスクを閉じる /task-close、プロジェクトを完了にする /project-close を足し、本文の節だけを差し替えられるようにした（#11）
 - 2026-11-26 追加 rules/client.md, rules/README.md, templates/CLAUDE_template.md: 先方に質問や資料を求める前に 1 件ずつ振り分け、先方にしか決められないものだけを送る（#10）
 - 2026-11-26 追加 rules/review.md, rules/README.md, .claude/commands/rule-review.md, rules/git.md, README.md, CLAUDE.md, AGENTS.md, templates/: レビューの観点、指摘の書き方、見た範囲の表を決めて /rule-review を足し、ルール一覧を rules/README.md へ移した（#9）
 - 2026-11-26 変更 .claude/commands/, start.md, README.md, rules/estimate.md: プロジェクト作成から親タスクの見積までを、テーマごとの 4 往復で進めるようにした（#8）

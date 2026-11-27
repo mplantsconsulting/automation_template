@@ -44,13 +44,13 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, Bash(node scripts/notion.mjs
    node scripts/notion.mjs task-status $1 --status レビュー
    ```
 
-10. 親タスクの本文を直す。「子タスク」の該当行に PR を添え、「現在地」を今日の日付で書き換える。子の範囲を変えた場合は「進め方」も直す（[rules/notion.md](../../rules/notion.md) の「親タスク」）。
+10. 親タスクの本文を直す。「子タスク」の該当行に PR を添え、「現在地」を今日の日付で書き換える。子の範囲を変えた場合は「進め方」も直す（[rules/notion.md](../../rules/notion.md) の「親タスク」）。今の本文は `body-get` で読み、節ごとに `body-section` で差し替える。本文全体を `body-set` で書き直すと、ページメンションが消える。
 11. CI の結果を確認し、PR の URL とタスクの状態を報告する。
 
 ## 注意
 
 - **マージはしない。** マージは利用者が判断する。
-- 完了にするのはマージの後で、利用者が行う。実績工数の入れ方は [rules/estimate.md](../../rules/estimate.md) の「実績」に従い、`task-status TSK-000 --status 完了 --actual <時間>` で入れる。
+- 完了にするのはマージの後で、`/task-close $1` で行う。実績工数は利用者に聞いて入れる。
 - Issue/PR データベースへの相互リレーションは、GitHub からの同期後に付く。`task-link-pr` が `relationLinked: false` を返しても、本文へのリンクは付いている。
 - 実装できない理由が見つかった場合は、ブランチを作る前に止めて報告する。
 - 軽微な文書・設定変更でタスクがない場合は、タイトルのタスク ID と本文のタスク行を省く。
