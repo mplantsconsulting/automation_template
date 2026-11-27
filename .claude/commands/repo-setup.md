@@ -7,7 +7,7 @@ allowed-tools: Read, Glob, Write, Bash(node scripts/notion.mjs:*), Bash(gh repo 
 プロジェクト `$1` のリポジトリ `$2` を作る。automation_template の共通ルールとテンプレートを写し、`dev` を既定のブランチにして、Notion のリポジトリに登録する。
 
 ブランチの決まりは [rules/git.md](../../rules/git.md)、リポジトリの登録は [rules/notion.md](../../rules/notion.md) の「タスク」に従う。ブランチ保護は設定しない（[rules/git.md](../../rules/git.md) の「マージ」）。
-質問は手順 3 の 1 回にまとめ、GitHub と Notion へは手順 4 の承認の後にだけ書き込む。
+質問は手順 6 の 1 回にまとめ、GitHub と Notion へは手順 7 の承認の後にだけ書き込む。
 
 ## 手順
 
@@ -16,7 +16,7 @@ allowed-tools: Read, Glob, Write, Bash(node scripts/notion.mjs:*), Bash(gh repo 
 1. `node scripts/notion.mjs project-get $1` でプロジェクトを確かめる。
 2. 作る先の組織は、automation_template と同じにする。`gh repo view --json owner -q .owner.login` で調べ、決め打ちしない。
 3. 同じ名前のリポジトリが無いことを `gh repo view <組織>/$2` で確かめる。あれば止めて、既存のものを紐付けるだけにするかを聞く。
-4. 手元の作業場所は、automation_template と同じ階層の `../$2` にする。既にあって空でなければ止める。automation_template の中には作らない。
+4. 手元の作業場所は、automation_template と同じ階層の `../$2` にする。既にあって空でなければ止める。空なら、そのまま使う。automation_template の中には作らない。
 
 ### 2. 写すものを決める
 
@@ -27,7 +27,7 @@ allowed-tools: Read, Glob, Write, Bash(node scripts/notion.mjs:*), Bash(gh repo 
    | `rules/` | `rules/` |
    | `reference/` | `reference/` |
    | `.claude/commands/` | `.claude/commands/` |
-   | `scripts/notion.mjs` | `scripts/notion.mjs` |
+   | `scripts/notion.mjs`、`scripts/notion-body.mjs` | `scripts/`（テストは写さない） |
    | `templates/PULL_REQUEST_TEMPLATE.md` | `.github/PULL_REQUEST_TEMPLATE.md` |
    | `templates/ISSUE_TEMPLATE/` | `.github/ISSUE_TEMPLATE/` |
    | `templates/CLAUDE_template.md` | `CLAUDE.md` と `AGENTS.md`（同じ内容） |
@@ -50,12 +50,12 @@ allowed-tools: Read, Glob, Write, Bash(node scripts/notion.mjs:*), Bash(gh repo 
 
 ### 4. 作る
 
-8. 手元に作り、写して、最初のコミットを作る。
+8. 手元に作り、写して、最初のコミットを作る。ステージするものは写したものを名指しする（[rules/git.md](../../rules/git.md) の「コミット」）。`aws/` を写したときは `aws` も足す。
 
    ```bash
-   mkdir ../$2 && git -C ../$2 init -b main
+   mkdir -p ../$2 && git -C ../$2 init -b main
    # 手順 5 の表のとおりに cp で写し、.gitignore を作る
-   git -C ../$2 add -A
+   git -C ../$2 add rules reference .claude .github scripts CLAUDE.md AGENTS.md README.md .gitignore
    git -C ../$2 commit -m "chore: 共通ルールとテンプレートを取り込む"
    ```
 

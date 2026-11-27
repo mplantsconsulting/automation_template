@@ -14,9 +14,8 @@
 
 ### 新規プロジェクトで使う
 
-1. このリポジトリを GitHub の Template Repository として指定し、新しいリポジトリを作成する。
-2. [templates/](templates/) から必要なファイルをプロジェクトのルートや `.github/` にコピーする。
-3. プロジェクトの `CLAUDE.md` と `README.md` に「この共通ルールに従う」と明記し、言語固有ルールがあれば追記する。
+1. このリポジトリで `/repo-setup <PJ-000> <リポジトリ名>` を実行する。リポジトリを作り、共通ルールとテンプレートを写し、Notion のプロジェクトへ紐付ける。手順は [repo-setup](.claude/commands/repo-setup.md) にある。
+2. 写した `CLAUDE.md` と `README.md` の「(記入)」を埋め、言語固有ルールがあれば追記する。
 
 ### 既存プロジェクトで使う
 
@@ -83,5 +82,15 @@ automation_template/
 ├── templates/         # コピーして使うファイル
 ├── .claude/commands/  # プロジェクト、リポジトリ、タスク、PR を作り、レビューし、閉じるコマンド
 └── scripts/
-    └── notion.mjs     # Notion を読み書きする CLI
+    ├── notion.mjs            # Notion を読み書きする CLI
+    ├── notion-body.mjs       # 本文と Markdown の変換、節の範囲。API を呼ばない
+    └── notion-body.test.mjs  # notion-body.mjs のテスト
+```
+
+## テスト
+
+Node.js 20 以上で、依存を入れずに実行できます。Notion のトークンは要りません。
+
+```bash
+node --test scripts/
 ```

@@ -36,3 +36,4 @@ AWS のアーキテクチャを設計、レビュー、実装するときは [aw
 - 変更したら [CHANGELOG.md](CHANGELOG.md) に 1 行追記する。
 - 見積の種別を変えたら、[reference/estimate-baseline.md](reference/estimate-baseline.md)、Notion のタスク種別の選択肢、`scripts/notion.mjs` の `TASK_TYPE` を同じ日に直す。
 - このリポジトリは `main` だけで運用する。
+- このリポジトリの改訂では Notion のタスクを作らず、PR のタイトルと本文のタスク ID を省く。ルール集の改訂は案件の作業ではなく、変更は CHANGELOG で追える。

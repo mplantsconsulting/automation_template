@@ -7,6 +7,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { bodyBlocks, findSection, headingLevel, plain, richText, richToMarkdown } from "./notion-body.mjs";
 
 const API = "https://api.notion.com/v1";
 const VERSION = "2022-06-28";
@@ -129,8 +130,6 @@ async function queryAll(dbId, filter) {
   return results;
 }
 
-const plain = (rich) => (rich || []).map((r) => r.plain_text).join("");
-
 function titleOf(page, kind) {
   return plain(page.properties?.[TITLE[kind]]?.title);
 }
@@ -244,115 +243,6 @@ function output(value) {
   console.log(JSON.stringify(value, null, 2));
 }
 
-// Notion は Markdown 記法を解釈しない。`#` を含む行をそのまま渡すと、
-// 見出しにならず `#` が本文へ残る。ブロック種別へ変換してから渡す。
-
-// **太字** と `コード` だけをインラインで扱う。
-function richText(text) {
-  const parts = [];
-  const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
-  let last = 0;
-  for (const match of text.matchAll(pattern)) {
-    if (match.index > last) parts.push({ text: { content: text.slice(last, match.index) } });
-    const token = match[0];
-    if (token.startsWith("**")) {
-      parts.push({ text: { content: token.slice(2, -2) }, annotations: { bold: true } });
-    } else {
-      parts.push({ text: { content: token.slice(1, -1) }, annotations: { code: true } });
-    }
-    last = match.index + token.length;
-  }
-  if (last < text.length) parts.push({ text: { content: text.slice(last) } });
-  if (!parts.length) parts.push({ text: { content: text } });
-  return parts.map((p) => ({ ...p, text: { ...p.text, content: p.text.content.slice(0, 2000) } }));
-}
-
-const block = (type, payload) => ({ object: "block", type, [type]: payload });
-
-function tableRow(cells) {
-  return { object: "block", type: "table_row", table_row: { cells: cells.map((c) => richText(c)) } };
-}
-
-function bodyBlocks(text) {
-  const lines = text.split("\n");
-  const blocks = [];
-
-  for (let i = 0; i < lines.length; i += 1) {
-    const raw = lines[i];
-    const line = raw.trim();
-    if (!line) continue;
-
-    // コードブロックは閉じフェンスまでまとめる。
-    const fence = line.match(/^```(\w*)/);
-    if (fence) {
-      const body = [];
-      i += 1;
-      while (i < lines.length && !lines[i].trim().startsWith("```")) {
-        body.push(lines[i]);
-        i += 1;
-      }
-      const languages = ["javascript", "typescript", "python", "bash", "shell", "json", "sql", "yaml", "markdown"];
-      blocks.push(
-        block("code", {
-          rich_text: [{ text: { content: body.join("\n").slice(0, 2000) } }],
-          language: languages.includes(fence[1]) ? fence[1] : "plain text",
-        }),
-      );
-      continue;
-    }
-
-    // 表は連続する行をまとめて 1 つのブロックにする。区切り行は捨てる。
-    if (line.startsWith("|") && line.endsWith("|")) {
-      const rows = [];
-      while (i < lines.length) {
-        const row = lines[i].trim();
-        if (!row.startsWith("|") || !row.endsWith("|")) break;
-        const cells = row.slice(1, -1).split("|").map((c) => c.trim());
-        if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) rows.push(cells);
-        i += 1;
-      }
-      i -= 1;
-      const width = Math.max(...rows.map((r) => r.length));
-      blocks.push(
-        block("table", {
-          table_width: width,
-          has_column_header: true,
-          has_row_header: false,
-          children: rows.map((r) => tableRow([...r, ...Array(width - r.length).fill("")])),
-        }),
-      );
-      continue;
-    }
-
-    const heading = line.match(/^(#{1,3})\s+(.*)$/);
-    if (heading) {
-      blocks.push(block(`heading_${heading[1].length}`, { rich_text: richText(heading[2]) }));
-      continue;
-    }
-    if (/^(-{3,}|\*{3,})$/.test(line)) {
-      blocks.push(block("divider", {}));
-      continue;
-    }
-    if (line.startsWith("> ")) {
-      blocks.push(block("quote", { rich_text: richText(line.slice(2)) }));
-      continue;
-    }
-    const bullet = line.match(/^[-*]\s+(.*)$/);
-    if (bullet) {
-      blocks.push(block("bulleted_list_item", { rich_text: richText(bullet[1]) }));
-      continue;
-    }
-    const numbered = line.match(/^\d+\.\s+(.*)$/);
-    if (numbered) {
-      blocks.push(block("numbered_list_item", { rich_text: richText(numbered[1]) }));
-      continue;
-    }
-    blocks.push(block("paragraph", { rich_text: richText(line) }));
-  }
-
-  return blocks;
-}
-
 // 1 回の API 呼び出しで追加できる子ブロックは 100 件まで。
 async function appendBlocks(pageId, blocks) {
   for (let i = 0; i < blocks.length; i += 100) {
@@ -410,19 +300,6 @@ async function bodySet(args) {
 //
 // 本文を読むときは Markdown に近い形へ戻す。読むためだけの変換で、body-set へそのまま戻すと
 // ページメンションが文字になる。メンションのある本文は、body-section で節だけを差し替える。
-
-function richToMarkdown(rich) {
-  return (rich || [])
-    .map((r) => {
-      if (r.type === "mention") return `@${r.plain_text}`;
-      let text = r.plain_text;
-      if (r.annotations?.code) text = `\`${text}\``;
-      if (r.annotations?.bold) text = `**${text}**`;
-      if (r.href) text = `[${text}](${r.href})`;
-      return text;
-    })
-    .join("");
-}
 
 async function blocksToMarkdown(blocks, indent = "") {
   const lines = [];
@@ -493,8 +370,6 @@ async function bodyGet(args) {
   console.log(`<!-- ${uniqueIdOf(page) || ""} ${titleOf(page, kind)} ${page.url} -->\n\n${joinLines(lines)}`);
 }
 
-const headingLevel = (b) => (/^heading_[123]$/.test(b.type) ? Number(b.type.slice(-1)) : 0);
-
 // 本文のうち 1 つの見出しの節だけを差し替える。ほかの節（ページメンションを含む）は書き直さない。
 // 節は、その見出しの次から、同じか上の段の次の見出しの手前まで。--append なら節の末尾へ足す。
 async function bodySection(args) {
@@ -505,20 +380,11 @@ async function bodySection(args) {
   const kind = kindOf(args._[0]);
   const page = await resolvePage(kind, args._[0]);
   const blocks = await listChildren(page.id);
-  // 「現在地（2026-11-24）」のように後ろに括弧書きが付いた見出しも、「現在地」で一致させる。
-  const sameHeading = (text) =>
-    text === args.heading || (text.startsWith(args.heading) && /^[（(]/.test(text.slice(args.heading.length)));
-  const matches = blocks
-    .map((b, i) => ({ b, i }))
-    .filter(({ b }) => headingLevel(b) && sameHeading(plain(b[b.type].rich_text).trim()));
-  if (!matches.length) fail(`見出し「${args.heading}」が本文に無い。body-get で見出しを確かめる。`);
-  if (matches.length > 1) fail(`見出し「${args.heading}」が ${matches.length} か所にあり、どの節か決められない。`);
-
-  const { b: heading, i: start } = matches[0];
+  const found = findSection(blocks, args.heading);
+  if (!found.count) fail(`見出し「${args.heading}」が本文に無い。body-get で見出しを確かめる。`);
+  if (found.count > 1) fail(`見出し「${args.heading}」が ${found.count} か所にあり、どの節か決められない。`);
+  const { heading, section } = found;
   const level = headingLevel(heading);
-  let end = start + 1;
-  while (end < blocks.length && !(headingLevel(blocks[end]) && headingLevel(blocks[end]) <= level)) end += 1;
-  const section = blocks.slice(start + 1, end);
 
   const added = bodyBlocks(fs.readFileSync(args.md, "utf8"));
   if (!added.length) fail("--md の中身が空。節を空にしない。");
@@ -546,13 +412,14 @@ async function bodySection(args) {
   if (newHeading) {
     await notion(`/blocks/${heading.id}`, "PATCH", { [heading.type]: { rich_text: richText(newHeading) } });
   }
-  if (!append) {
-    for (const child of section) await notion(`/blocks/${child.id}`, "DELETE");
-  }
   // 1 回に足せるのは 100 件まで。後ろの塊から同じ位置の直後へ入れると、順序が保たれる。
+  // 差し替えでは、新しい中身を見出しの直後へ足してから古い中身を消す。途中で失敗しても節が空にならない。
   const anchor = append && section.length ? section[section.length - 1].id : heading.id;
   for (let i = Math.floor((added.length - 1) / 100) * 100; i >= 0; i -= 100) {
     await notion(`/blocks/${page.id}/children`, "PATCH", { children: added.slice(i, i + 100), after: anchor });
+  }
+  if (!append) {
+    for (const child of section) await notion(`/blocks/${child.id}`, "DELETE");
   }
   output({ ...summarize(page, kind), heading: newHeading || plain(heading[heading.type].rich_text), append, removedBlocks: append ? 0 : section.length, addedBlocks: added.length });
 }
