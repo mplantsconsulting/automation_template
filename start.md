@@ -44,7 +44,7 @@ AI が行う手順の詳しい中身は、各コマンドのファイル（`.cla
                     目的（範囲 = 何を、いくつ）を書いて確認
                     目的だけを見て見積もる
                     予想開発時間 = 親の見積の合計
-   ↓  GitHub リポジトリを作る
+   ↓  /repo-setup
 🗂 リポジトリ    プロジェクトへ紐付け              … 4. リポジトリを作る
    ↓  /notion-tasks
 ✅ 子タスク      1-1. 具体的な作業  見積は入れない … 5. 子タスクを作る
@@ -52,7 +52,10 @@ AI が行う手順の詳しい中身は、各コマンドのファイル（`.cla
       作業ブランチ → 実装 → PR → タスクへ紐付け   … 6. 実装して PR を出す
         ↓
       レビュー → dev へマージ                     … 7. レビューとマージ
+        ↓  /task-close
       完了にして実績工数を入れる
+   ↓  /project-close（最後のタスクを閉じたら）
+🚀 プロジェクトを完了にし、削減時間を先方の回答で置き換える
 ```
 
 1 つの子タスクが 1 つの PR に対応します。ここが崩れると、あとの管理が全部ずれます。
@@ -141,22 +144,18 @@ node scripts/notion.mjs members    # 名前が並べば接続できている
 ### あなたがすること
 
 1. リポジトリ名を決める。
-2. 作る内容を見て承認する。
+2. AWS を使う案件かを答える。
+3. 作る内容を見て承認する。
 
-AI は GitHub にリポジトリを作って `dev` を既定のブランチにし、`rules/`、`reference/`、`.claude/commands/`、`scripts/notion.mjs`、`.github/` をこのリポジトリからコピーします。Notion にもリポジトリを登録し、プロジェクトへ紐付けます。ブランチ保護は設定しません（理由は [rules/git.md](rules/git.md)）。
+AI は GitHub にリポジトリを作って `dev` を既定のブランチにし、共通ルールとテンプレートをこのリポジトリから写します。Notion にもリポジトリを登録し、プロジェクトへ紐付けます。ブランチ保護は設定しません（理由は [rules/git.md](rules/git.md)）。
 
 ### コマンド
 
-```bash
-gh repo create mplantsconsulting/<リポジトリ名> --private --source=. --remote=origin --push
-git switch -c dev && git push -u origin dev
-gh repo edit mplantsconsulting/<リポジトリ名> --default-branch dev
-node scripts/notion.mjs repo-create \
-  --full mplantsconsulting/<リポジトリ名> \
-  --project PJ-000 \
-  --url https://github.com/mplantsconsulting/<リポジトリ名> \
-  --visibility private --branch dev
+```text
+/repo-setup PJ-000 <リポジトリ名>
 ```
+
+手順は [repo-setup](.claude/commands/repo-setup.md) にあります。
 
 ## 5. 子タスクを作る
 
@@ -199,16 +198,17 @@ node scripts/notion.mjs repo-create \
 ### あなたがすること
 
 1. レビューを受けてから、自分でマージする。マージの方法は [rules/git.md](rules/git.md) の「マージ」に従います。
-2. タスクを完了にし、**実績工数を必ず入れる。** 実績は子タスクに入れます。子のない親タスクだけは親に入れます（[rules/estimate.md](rules/estimate.md) の「実績」）。AI が閉じるときは、実績工数をあなたに聞きます。
-3. プロジェクトの最後のタスクを閉じたら、先方に自動化後の実際の作業時間を聞き、回答をプロジェクトの本文に貼り付けて値を置き換える（[rules/estimate.md](rules/estimate.md) の「削減時間の見積」）。
+2. タスクを完了にし、**実績工数を必ず入れる。** AI が実績工数を聞くので、待ち時間を除いた実際の時間を答えます。実績は子タスクに入れ、子のない親タスクだけは親に入れます（[rules/estimate.md](rules/estimate.md) の「実績」）。
+3. プロジェクトの最後のタスクを閉じたら、プロジェクトを完了にする。先方に自動化後の実際の作業時間を聞き、回答を AI に渡すと、削減時間が回答の値に置き換わります（[rules/estimate.md](rules/estimate.md) の「削減時間の見積」）。回答が後から届いたら、もう一度実行します。
 
 ### コマンド
 
-```bash
-node scripts/notion.mjs task-status TSK-000 --status 完了 --actual 6
-node scripts/notion.mjs project-estimate PJ-000 --dry-run   # 親ごとの見積と実績を見る
-node scripts/notion.mjs project-savings PJ-000 --before 46 --after 12 --answer   # 完了後、先方の回答で置き換える
+```text
+/task-close TSK-000      # PR がマージされたタスクを閉じる。親の現在地も直す
+/project-close PJ-000    # すべてのタスクが閉じたら、プロジェクトを完了にする
 ```
+
+手順は [task-close](.claude/commands/task-close.md) と [project-close](.claude/commands/project-close.md) にあります。
 
 ## つまずきやすいところ
 
@@ -230,6 +230,7 @@ node scripts/notion.mjs project-savings PJ-000 --before 46 --after 12 --answer  
 | `--actual で実績工数を必ず入れる` と出る | タスクを閉じるときは実績工数が必須。既に値があっても `--actual <時間>` を付けて入れ直す |
 | `実績工数が空の子タスクがある` と出る | 子のある親は、すべての子に実績が入るまで完了にできない。先に子へ実績を入れる |
 | 完了した親に「📝実績工数未入力」が出る | アラートが親と子を区別しないため。子のある親では無視する。子のない親なら `--actual` で実績を入れる |
+| `プロジェクトを完了にできない` と出る | 完了していないタスクか、実績の空いたタスクが残っている。出てきたタスクを `/task-close` で閉じる |
 
 ### GitHub と CI
 

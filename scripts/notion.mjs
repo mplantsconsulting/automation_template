@@ -7,6 +7,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { bodyBlocks, findSection, headingLevel, plain, richText, richToMarkdown } from "./notion-body.mjs";
 
 const API = "https://api.notion.com/v1";
 const VERSION = "2022-06-28";
@@ -129,8 +130,6 @@ async function queryAll(dbId, filter) {
   return results;
 }
 
-const plain = (rich) => (rich || []).map((r) => r.plain_text).join("");
-
 function titleOf(page, kind) {
   return plain(page.properties?.[TITLE[kind]]?.title);
 }
@@ -244,115 +243,6 @@ function output(value) {
   console.log(JSON.stringify(value, null, 2));
 }
 
-// Notion は Markdown 記法を解釈しない。`#` を含む行をそのまま渡すと、
-// 見出しにならず `#` が本文へ残る。ブロック種別へ変換してから渡す。
-
-// **太字** と `コード` だけをインラインで扱う。
-function richText(text) {
-  const parts = [];
-  const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
-  let last = 0;
-  for (const match of text.matchAll(pattern)) {
-    if (match.index > last) parts.push({ text: { content: text.slice(last, match.index) } });
-    const token = match[0];
-    if (token.startsWith("**")) {
-      parts.push({ text: { content: token.slice(2, -2) }, annotations: { bold: true } });
-    } else {
-      parts.push({ text: { content: token.slice(1, -1) }, annotations: { code: true } });
-    }
-    last = match.index + token.length;
-  }
-  if (last < text.length) parts.push({ text: { content: text.slice(last) } });
-  if (!parts.length) parts.push({ text: { content: text } });
-  return parts.map((p) => ({ ...p, text: { ...p.text, content: p.text.content.slice(0, 2000) } }));
-}
-
-const block = (type, payload) => ({ object: "block", type, [type]: payload });
-
-function tableRow(cells) {
-  return { object: "block", type: "table_row", table_row: { cells: cells.map((c) => richText(c)) } };
-}
-
-function bodyBlocks(text) {
-  const lines = text.split("\n");
-  const blocks = [];
-
-  for (let i = 0; i < lines.length; i += 1) {
-    const raw = lines[i];
-    const line = raw.trim();
-    if (!line) continue;
-
-    // コードブロックは閉じフェンスまでまとめる。
-    const fence = line.match(/^```(\w*)/);
-    if (fence) {
-      const body = [];
-      i += 1;
-      while (i < lines.length && !lines[i].trim().startsWith("```")) {
-        body.push(lines[i]);
-        i += 1;
-      }
-      const languages = ["javascript", "typescript", "python", "bash", "shell", "json", "sql", "yaml", "markdown"];
-      blocks.push(
-        block("code", {
-          rich_text: [{ text: { content: body.join("\n").slice(0, 2000) } }],
-          language: languages.includes(fence[1]) ? fence[1] : "plain text",
-        }),
-      );
-      continue;
-    }
-
-    // 表は連続する行をまとめて 1 つのブロックにする。区切り行は捨てる。
-    if (line.startsWith("|") && line.endsWith("|")) {
-      const rows = [];
-      while (i < lines.length) {
-        const row = lines[i].trim();
-        if (!row.startsWith("|") || !row.endsWith("|")) break;
-        const cells = row.slice(1, -1).split("|").map((c) => c.trim());
-        if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) rows.push(cells);
-        i += 1;
-      }
-      i -= 1;
-      const width = Math.max(...rows.map((r) => r.length));
-      blocks.push(
-        block("table", {
-          table_width: width,
-          has_column_header: true,
-          has_row_header: false,
-          children: rows.map((r) => tableRow([...r, ...Array(width - r.length).fill("")])),
-        }),
-      );
-      continue;
-    }
-
-    const heading = line.match(/^(#{1,3})\s+(.*)$/);
-    if (heading) {
-      blocks.push(block(`heading_${heading[1].length}`, { rich_text: richText(heading[2]) }));
-      continue;
-    }
-    if (/^(-{3,}|\*{3,})$/.test(line)) {
-      blocks.push(block("divider", {}));
-      continue;
-    }
-    if (line.startsWith("> ")) {
-      blocks.push(block("quote", { rich_text: richText(line.slice(2)) }));
-      continue;
-    }
-    const bullet = line.match(/^[-*]\s+(.*)$/);
-    if (bullet) {
-      blocks.push(block("bulleted_list_item", { rich_text: richText(bullet[1]) }));
-      continue;
-    }
-    const numbered = line.match(/^\d+\.\s+(.*)$/);
-    if (numbered) {
-      blocks.push(block("numbered_list_item", { rich_text: richText(numbered[1]) }));
-      continue;
-    }
-    blocks.push(block("paragraph", { rich_text: richText(line) }));
-  }
-
-  return blocks;
-}
-
 // 1 回の API 呼び出しで追加できる子ブロックは 100 件まで。
 async function appendBlocks(pageId, blocks) {
   for (let i = 0; i < blocks.length; i += 100) {
@@ -360,27 +250,33 @@ async function appendBlocks(pageId, blocks) {
   }
 }
 
+// 子ブロックを最後のページまで読む。1 回で返るのは 100 件まで。
+async function listChildren(blockId) {
+  const results = [];
+  let cursor;
+  do {
+    const page = await notion(`/blocks/${blockId}/children?page_size=100${cursor ? `&start_cursor=${cursor}` : ""}`);
+    results.push(...page.results);
+    cursor = page.has_more ? page.next_cursor : undefined;
+  } while (cursor);
+  return results;
+}
+
+const kindOf = (reference) => (/^TSK-/i.test(reference || "") ? "task" : "project");
+
 // 既存の本文を消して書き直す。Markdown の変換を直したあとに使う。
 async function bodySet(args) {
   if (!args.md) fail("--md は必須。");
   if (!fs.existsSync(args.md)) fail(`${args.md} が見つからない。`);
 
-  const kind = /^TSK-/i.test(args._[0] || "") ? "task" : "project";
+  const kind = kindOf(args._[0]);
   const page = await resolvePage(kind, args._[0]);
   const blocks = bodyBlocks(fs.readFileSync(args.md, "utf8"));
 
   // --append は既存の本文を残し、末尾へ足す。プロジェクトの本文（案件資料）に節を足すときに使う。
   const append = Boolean(args.append);
   // 100 ブロックを超える本文も消し切るため、最後のページまで読む。
-  const existing = { results: [] };
-  if (!append) {
-    let cursor;
-    do {
-      const page100 = await notion(`/blocks/${page.id}/children?page_size=100${cursor ? `&start_cursor=${cursor}` : ""}`);
-      existing.results.push(...page100.results);
-      cursor = page100.has_more ? page100.next_cursor : undefined;
-    } while (cursor);
-  }
+  const existing = { results: append ? [] : await listChildren(page.id) };
   if (args["dry-run"]) {
     output({
       dryRun: true,
@@ -398,6 +294,134 @@ async function bodySet(args) {
   }
   await appendBlocks(page.id, blocks);
   output({ ...summarize(page, kind), removedBlocks: existing.results.length, addedBlocks: blocks.length });
+}
+
+// ---- 本文の読み取りと節の差し替え ----------------------------------------
+//
+// 本文を読むときは Markdown に近い形へ戻す。読むためだけの変換で、body-set へそのまま戻すと
+// ページメンションが文字になる。メンションのある本文は、body-section で節だけを差し替える。
+
+async function blocksToMarkdown(blocks, indent = "") {
+  const lines = [];
+  let number = 0;
+  for (const b of blocks) {
+    const value = b[b.type] || {};
+    const text = richToMarkdown(value.rich_text);
+    number = b.type === "numbered_list_item" ? number + 1 : 0;
+    switch (b.type) {
+      case "heading_1":
+      case "heading_2":
+      case "heading_3":
+        lines.push("", `${"#".repeat(Number(b.type.slice(-1)))} ${text}`, "");
+        break;
+      case "paragraph":
+        lines.push(indent + text);
+        break;
+      case "bulleted_list_item":
+      case "toggle":
+        lines.push(`${indent}- ${text}`);
+        break;
+      case "numbered_list_item":
+        lines.push(`${indent}${number}. ${text}`);
+        break;
+      case "to_do":
+        lines.push(`${indent}- [${value.checked ? "x" : " "}] ${text}`);
+        break;
+      case "quote":
+      case "callout":
+        lines.push(`${indent}> ${text}`);
+        break;
+      case "code":
+        lines.push("```" + (value.language || ""), plain(value.rich_text), "```");
+        break;
+      case "divider":
+        lines.push("---");
+        break;
+      case "child_page":
+        lines.push(`${indent}@${value.title}`);
+        break;
+      case "table": {
+        const rows = await listChildren(b.id);
+        lines.push("");
+        rows.forEach((row, i) => {
+          const cells = row.table_row.cells.map((c) => richToMarkdown(c).replace(/\|/g, "\\|"));
+          lines.push(`${indent}| ${cells.join(" | ")} |`);
+          if (i === 0) lines.push(`${indent}| ${cells.map(() => "---").join(" | ")} |`);
+        });
+        lines.push("");
+        break;
+      }
+      default:
+        lines.push(`${indent}（${b.type}）`);
+    }
+    if (b.has_children && b.type !== "table" && b.type !== "child_page") {
+      lines.push(...(await blocksToMarkdown(await listChildren(b.id), `${indent}  `)));
+    }
+  }
+  return lines;
+}
+
+const joinLines = (lines) => lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+
+async function bodyGet(args) {
+  const kind = kindOf(args._[0]);
+  const page = await resolvePage(kind, args._[0]);
+  const lines = await blocksToMarkdown(await listChildren(page.id));
+  console.log(`<!-- ${uniqueIdOf(page) || ""} ${titleOf(page, kind)} ${page.url} -->\n\n${joinLines(lines)}`);
+}
+
+// 本文のうち 1 つの見出しの節だけを差し替える。ほかの節（ページメンションを含む）は書き直さない。
+// 節は、その見出しの次から、同じか上の段の次の見出しの手前まで。--append なら節の末尾へ足す。
+async function bodySection(args) {
+  if (!args.heading || args.heading === true) fail("--heading は必須。節の見出しの文字だけを渡す（# は付けない）。");
+  if (!args.md) fail("--md は必須。節の中身だけを書き、見出しは含めない。");
+  if (!fs.existsSync(args.md)) fail(`${args.md} が見つからない。`);
+
+  const kind = kindOf(args._[0]);
+  const page = await resolvePage(kind, args._[0]);
+  const blocks = await listChildren(page.id);
+  const found = findSection(blocks, args.heading);
+  if (!found.count) fail(`見出し「${args.heading}」が本文に無い。body-get で見出しを確かめる。`);
+  if (found.count > 1) fail(`見出し「${args.heading}」が ${found.count} か所にあり、どの節か決められない。`);
+  const { heading, section } = found;
+  const level = headingLevel(heading);
+
+  const added = bodyBlocks(fs.readFileSync(args.md, "utf8"));
+  if (!added.length) fail("--md の中身が空。節を空にしない。");
+  if (added.some((b) => headingLevel(b) && headingLevel(b) <= level)) {
+    fail("--md に、この節と同じか上の段の見出しがある。節の中身だけを書く。");
+  }
+
+  const append = Boolean(args.append);
+  if (args["new-heading"] === true) fail("--new-heading には新しい見出しの文字を渡す。");
+  const newHeading = args["new-heading"];
+  if (args["dry-run"]) {
+    output({
+      dryRun: true,
+      page: summarize(page, kind),
+      heading: plain(heading[heading.type].rich_text),
+      ...(newHeading ? { newHeading } : {}),
+      append,
+      current: joinLines(await blocksToMarkdown(section)),
+      removeBlocks: append ? 0 : section.length,
+      addBlocks: added.length,
+    });
+    return;
+  }
+
+  if (newHeading) {
+    await notion(`/blocks/${heading.id}`, "PATCH", { [heading.type]: { rich_text: richText(newHeading) } });
+  }
+  // 1 回に足せるのは 100 件まで。後ろの塊から同じ位置の直後へ入れると、順序が保たれる。
+  // 差し替えでは、新しい中身を見出しの直後へ足してから古い中身を消す。途中で失敗しても節が空にならない。
+  const anchor = append && section.length ? section[section.length - 1].id : heading.id;
+  for (let i = Math.floor((added.length - 1) / 100) * 100; i >= 0; i -= 100) {
+    await notion(`/blocks/${page.id}/children`, "PATCH", { children: added.slice(i, i + 100), after: anchor });
+  }
+  if (!append) {
+    for (const child of section) await notion(`/blocks/${child.id}`, "DELETE");
+  }
+  output({ ...summarize(page, kind), heading: newHeading || plain(heading[heading.type].rich_text), append, removedBlocks: append ? 0 : section.length, addedBlocks: added.length });
 }
 
 // Notion のオートメーションは作成の数秒後に走り、API が送った値を上書きすることがある。
@@ -472,6 +496,48 @@ async function projectSavings(args) {
   }
   const updated = await notion(`/pages/${page.id}`, "PATCH", { properties });
   output({ ...summarize(updated, "project"), answer: isAnswer, previous, before, after, monthlyReductionHours: Math.round((before - after) * 10) / 10, ...(warning ? { warning } : {}) });
+}
+
+// 完了にするのは、すべてのタスクが閉じ、子のないタスクに実績がそろってから（rules/estimate.md の「実績」）。
+// 完了にするときは完了日を入れ、見積と実績の合計を返す。
+async function projectStatus(args) {
+  const status = requireChoice("--status", args.status, PROJECT_STATUS);
+  if (!status) fail("--status は必須。");
+  const page = await resolvePage("project", args._[0]);
+  const properties = { ステータス: { status: { name: status } } };
+  const result = { previous: page.properties?.ステータス?.status?.name || null };
+
+  if (status === "完了") {
+    const tasks = await queryAll(DB.task, { property: "プロジェクト", relation: { contains: page.id } });
+    const label = (t) => `${uniqueIdOf(t)} ${titleOf(t, "task")}`;
+    const hasChildren = (t) => (t.properties?.サブアイテム?.relation || []).length > 0;
+    const open = tasks.filter((t) => t.properties?.ステータス?.status?.name !== "完了");
+    const noActual = tasks.filter((t) => !hasChildren(t) && t.properties?.実績工数h?.number == null);
+    const problems = [];
+    if (open.length) problems.push(`完了していないタスク: ${open.map(label).join(" / ")}`);
+    if (noActual.length) problems.push(`実績工数が空のタスク: ${noActual.map(label).join(" / ")}`);
+    if (problems.length) fail(`プロジェクトを完了にできない。${problems.join("。")}`);
+
+    properties.完了日 = { date: { start: args.date || today() } };
+    const round1 = (n) => Math.round(n * 10) / 10;
+    const estimate = tasks.filter((t) => !parentIdOf(t)).reduce((s, t) => s + (t.properties?.見積工数h?.number ?? 0), 0);
+    const actual = tasks.filter((t) => !hasChildren(t)).reduce((s, t) => s + (t.properties?.実績工数h?.number ?? 0), 0);
+    Object.assign(result, {
+      estimateTotalHours: round1(estimate),
+      actualTotalHours: round1(actual),
+      actualPerEstimate: estimate ? Math.round((actual / estimate) * 100) / 100 : null,
+    });
+    if (page.properties?.自動化後月間作業時間?.number == null) {
+      result.warning = "削減時間が入っていない。先方の回答を project-savings --answer で入れる。";
+    }
+  }
+
+  if (args["dry-run"]) {
+    output({ dryRun: true, ...summarize(page, "project"), ...result, properties });
+    return;
+  }
+  const updated = await notion(`/pages/${page.id}`, "PATCH", { properties });
+  output({ ...summarize(updated, "project"), status, ...result });
 }
 
 async function projectCreate(args) {
@@ -653,9 +719,31 @@ async function taskGet(args) {
   const parent = parentRel.length
     ? summarize(await notion(`/pages/${parentRel[0].id}`), "task")
     : null;
+  // 親を閉じるときに、子の状態と実績を確かめるため返す。
+  const children = [];
+  for (const rel of page.properties?.サブアイテム?.relation || []) {
+    const child = await notion(`/pages/${rel.id}`);
+    children.push({
+      ...summarize(child, "task"),
+      status: child.properties?.ステータス?.status?.name || null,
+      type: child.properties?.タスク種別?.select?.name || null,
+      actualHours: child.properties?.実績工数h?.number ?? null,
+    });
+  }
+  children.sort((a, b) => a.name.localeCompare(b.name, "ja", { numeric: true }));
+  // task-link-pr が本文に足した PR のリンク。閉じる前にマージ済みかを確かめるのに使う。
+  const prUrls = [
+    ...new Set(
+      (await listChildren(page.id))
+        .flatMap((b) => (b[b.type]?.rich_text || []).map((r) => r.href))
+        .filter((href) => href && /github\.com\/[^/]+\/[^/]+\/pull\/\d+/.test(href)),
+    ),
+  ];
   output({
     ...summarize(page, "task"),
     parent,
+    children,
+    prUrls,
     status: page.properties?.ステータス?.status?.name || null,
     kind: page.properties?.工数区分?.select?.name || null,
     type: page.properties?.タスク種別?.select?.name || null,
@@ -826,6 +914,7 @@ const COMMANDS = {
   "project-get": projectGet,
   "project-estimate": projectEstimate,
   "project-savings": projectSavings,
+  "project-status": projectStatus,
   "task-create": taskCreate,
   "task-get": taskGet,
   "task-status": taskStatus,
@@ -833,6 +922,8 @@ const COMMANDS = {
   "task-archive": taskArchive,
   "repo-create": repoCreate,
   "body-set": bodySet,
+  "body-get": bodyGet,
+  "body-section": bodySection,
   members,
   clients,
 };
@@ -852,8 +943,10 @@ if (!command || !COMMANDS[command]) {
                  [--priority 高|中|低] [--assignee <氏名>] [--due YYYY-MM-DD]
                  [--body <説明>] [--dry-run]
                  (--estimate <h> | --parent <TSK-3>)   見積は親だけ。子には入れない
-  task-get       <TSK-12|URL|名前>
-  task-status    <TSK-12> --status 未着手|進行中|レビュー|完了|保留 [--actual <h>] [--dry-run]
+  project-status <PJ-12> --status <ステータス> [--date YYYY-MM-DD] [--dry-run]
+                 完了にするのは、すべてのタスクが完了し、子のないタスクに実績がそろってから。完了日も入れる
+  task-get       <TSK-12|URL|名前>   子タスクと、本文に紐付けた PR の URL も返す
+  task-status   <TSK-12> --status 未着手|進行中|レビュー|完了|保留 [--actual <h>] [--dry-run]
                  完了にするときは --actual が必須（子のないタスク）。子のある親は子の実績がそろうまで完了にできない
   task-link-pr   <TSK-12> --url <PR の URL> [--title <PR タイトル>] [--dry-run]
   task-archive   <TSK-12> [--dry-run]   ゴミ箱へ移す。UI から元へ戻せる
@@ -864,7 +957,12 @@ if (!command || !COMMANDS[command]) {
                  自動化の前と後の月の作業時間を入れる。完了後の先方の回答は --answer を付ける
   body-set       <PJ-12|TSK-12> --md <Markdown のパス> [--append] [--dry-run]
                  既存の本文を消して書き直す。--append なら末尾へ足す
-  members        在籍メンバーの一覧
+  body-get       <PJ-12|TSK-12>   本文を Markdown に近い形で読む。読むためだけの変換
+  body-section   <PJ-12|TSK-12> --heading <見出し> --md <中身のパス> [--new-heading <見出し>]
+                 [--append] [--dry-run]
+                 1 つの節だけを差し替える。--append なら節の末尾へ足す。ほかの節は触らない。
+                 「現在地（日付）」のような括弧書き付きの見出しも、括弧の前の文字で選べる
+  members       在籍メンバーの一覧
   clients        クライアントの一覧`);
   process.exit(1);
 }
